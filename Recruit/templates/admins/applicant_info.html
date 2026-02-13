@@ -243,7 +243,7 @@
 
         data.forEach(row => {
 
-            tbody += `<tr class="main-row">`;
+            tbody += `<tr class="main-row" data-app-id="${row.id}" data-app-name="${row.name}" style="cursor: pointer;">`;
 
             columns.forEach(col => {
                 let value = row[col.key] ?? '-';
@@ -279,6 +279,21 @@
         tableContainer.innerHTML =
             `<table class="applicants-table">${thead}${tbody}</table>`;
 
+        // Add click handler for row navigation
+        document.querySelectorAll('.main-row').forEach(row => {
+            row.addEventListener('click', function(e) {
+                // Don't navigate if clicking on the expand button
+                if (e.target.closest('.expand-btn')) {
+                    return;
+                }
+                const appId = this.dataset.appId;
+                const appName = encodeURIComponent(this.dataset.appName);
+                if (appId && appName) {
+                    window.location.href = `/info/${appId}/${appName}`;
+                }
+            });
+        });
+
         document.querySelectorAll('.expand-btn').forEach(btn => {
             btn.addEventListener('click', function (e) {
                 e.stopPropagation();
@@ -288,7 +303,8 @@
         });
 
         document.querySelectorAll('.close-detail').forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
                 this.closest('.detail-row').style.display = 'none';
             });
         });

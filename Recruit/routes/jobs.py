@@ -3,10 +3,17 @@ from flask import Blueprint,render_template,request,jsonify,session
 from models import Job, db
 import json
 from datetime import datetime
+import google.generativeai as genai
+import re
 
 # Create a blueprint for general routes
 job_bp = Blueprint('job_bp', __name__)
-
+generation_config = {
+    "temperature": 1,
+    "top_p": 0.95,
+    "top_k": 64,
+    "max_output_tokens": 8192,
+}
 
 @job_bp.route('/', methods=['POST', 'GET'])
 def handle_jobs():
@@ -25,7 +32,56 @@ def handle_jobs():
 
         if not all([title, description, qualifications, responsibilities, required_experience,number_of_positions,deadline]):
             return jsonify({"message": "Missing required fields."}), 400
+        
 
+        gemini_prompt = f"""
+You are an expert in professional English writing and technical communication.
+
+Your task is to enhance and rewrite the provided job description so that:
+- It is clearer
+- It is more structured
+- It is easy for candidates to understand
+- It maintains professionalism
+- It does NOT add any new requirements, technologies, responsibilities, or assumptions
+- It does NOT hallucinate or invent any details
+- It strictly stays within the information provided
+
+Rules:
+1. Do not introduce new skills, tools, qualifications, benefits, or responsibilities.
+2. Do not assume company culture, salary, perks, or additional expectations.
+3. Only reorganize, clarify, and improve wording of the given content.
+4. If the input is incomplete, improve clarity but do not fill missing gaps with assumptions.
+5. Maintain a professional tone suitable for a real job posting.
+
+Output Format (STRICTLY FOLLOW):
+Return ONLY valid JSON.
+Do not include explanations.
+Do not include markdown.
+Do not include extra text.
+
+Required Output Structure:
+
+{{
+  "job_description": "Enhanced version here"
+}}
+
+Now enhance the following job description:
+
+{description}
+
+
+        """
+
+        model = genai.GenerativeModel('gemini-2.5-flash', generation_config=generation_config)
+        response = model.generate_content(gemini_prompt)
+        gemini_output_text = response.text.strip()
+
+        json_match = re.search(r"```json\s*(\{.*?})\s*```", gemini_output_text, re.DOTALL)
+        gemini_output_json_str = json_match.group(1) if json_match else gemini_output_text
+        gemini_output = json.loads(gemini_output_json_str)
+
+        description = gemini_output.get("job_description", description)
+        
 
         new_job = Job(
             title=title,

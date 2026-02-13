@@ -163,31 +163,32 @@
         formData.append('number_of_positions', document.getElementById('nop').value);
         formData.append('deadline', document.getElementById('deadline').value); // Send the deadline
         try {
-          const response = await fetch('/jobs', {
-            method: 'POST',
-            body: formData
-          });
-          console.log("sent")
-          const result = await response.json();
-          console.log("result")
 
-          if (response.ok) {
-            // Check if showGlobalMessage function exists
-            if (typeof showGlobalMessage === 'function') {
-              showGlobalMessage(result.message, 'success', '/admin/job');
-            } else {
-              alert('Job posted successfully!');
-              window.location.href = '/admin/job';
-            }
+          
+          navigator.sendBeacon('/jobs', formData  );
+
+          window.location.href = "/admin/applications";
+          // const result = await response.json();
+          // console.log("result")
+          
+
+          // if (response.ok) {
+          //   // Check if showGlobalMessage function exists
+          //   if (typeof showGlobalMessage === 'function') {
+          //     showGlobalMessage(result.message, 'success', '/admin/job');
+          //   } else {
+          //     alert('Job posted successfully!');
+          //     window.location.href = '/admin/job';
+          //   }
             
            
-          } else {
-            if (typeof showGlobalMessage === 'function') {
-              showGlobalMessage(result.message || 'Failed to post job', 'error');
-            } else {
-              alert(result.message || 'Failed to post job. Please try again.');
-            }
-          }
+          // } else {
+          //   if (typeof showGlobalMessage === 'function') {
+          //     showGlobalMessage(result.message || 'Failed to post job', 'error');
+          //   } else {
+          //     alert(result.message || 'Failed to post job. Please try again.');
+          //   }
+          // }
         } catch (error) {
           console.error('Error submitting job form:', error);
           if (typeof showGlobalMessage === 'function') {

@@ -27,14 +27,12 @@ def admin_applications():
         name_filter = session.get('company_name')
         print(name_filter)
         applications_query = Application.query
-
-        applications_query = applications_query.filter(Job.is_open==1)
         if name_filter is None:
             return jsonify([]), 200
         if name_filter:
             applications_query = applications_query.join(Application.job).filter(
-        Job.title.ilike(f'%{name_filter}%'),
-    )
+                Job.title.ilike(f'%{name_filter}%'),
+            )
 
 
         applications = applications_query.all()
@@ -54,12 +52,20 @@ def admin_applications():
                 'applicant_name': app_obj.applicant_name,
                 'applicant_email': app_obj.applicant_email,
                 'applicant_age': app_obj.applicant_age,
+                'gender': app_obj.gender,
                 'applicant_experience': app_obj.applicant_experience,
                 'education': app_obj.education,
-                'applied_at': app_obj.applied_at.isoformat(),
+                'applied_at': app_obj.applied_at.isoformat() if app_obj.applied_at else None,
                 'resume_path': app_obj.resume_path,
                 'eligibility_score': app_obj.eligibility_score,
-                'assessment_score': app_obj.assessment_score,
+                'assessment_score': getattr(app_obj, 'assessment_score', None),
+                'mcq_score': app_obj.mcq_score,
+                'coding_score': app_obj.coding_score,
+                'interview_score': app_obj.interview_score,
+                'leetcode_score': app_obj.leetcode_score,
+                'github_score': app_obj.github_score,
+                'resume_score': app_obj.resume_score,
+                'resume_skills': app_obj.resume_skills,
                 'status': app_obj.status
             })
 

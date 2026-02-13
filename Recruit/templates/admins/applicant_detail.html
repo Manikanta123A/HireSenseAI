@@ -1,27 +1,280 @@
 {% extends 'admins/adminbase.html' %}
 
-{% block title %}Applicant Detail{% endblock %}
+{% block title %}Applicant Detail - {{ application.applicant_name }}{% endblock %}
 
 {% block content %}
-<div class="job-listing-wrapper">
-    <h1>Applicant: {{ application.applicant_name }}</h1>
-    <p><strong>Email:</strong> {{ application.applicant_email }}</p>
-    <p><strong>Experience:</strong> {{ application.applicant_experience }} years</p>
-    <p><strong>Education:</strong> {{ application.education }}</p>
-    <p><strong>Status:</strong> {{ application.status }}</p>
+<div class="applicant-detail-container" style="max-width: 1400px; margin: 0 auto; padding: 30px 20px;">
+    <!-- Header Section -->
+    <div class="detail-header" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)); backdrop-filter: blur(20px); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(148, 163, 184, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px;">
+            <div>
+                <h1 style="margin: 0 0 10px 0; font-size: 2.2em; font-weight: 700; color: var(--text-color-light);">
+                    {{ application.applicant_name }}
+                </h1>
+                <p style="margin: 5px 0; color: var(--text-color-faded); font-size: 1.1em;">
+                    <strong>Email:</strong> {{ application.applicant_email }}
+                </p>
+                <p style="margin: 5px 0; color: var(--text-color-faded);">
+                    <strong>Experience:</strong> {{ application.applicant_experience or '-' }} years
+                    <span style="margin: 0 15px;">|</span>
+                    <strong>Education:</strong> {{ application.education or '-' }}
+                </p>
+                <p style="margin: 5px 0; color: var(--text-color-faded);">
+                    <strong>Status:</strong> 
+                    <span style="padding: 4px 12px; border-radius: 12px; background: {% if application.status == 'Rejected' %}rgba(239, 68, 68, 0.2){% elif application.status == 'INTERVIEW' %}rgba(34, 197, 94, 0.2){% else %}rgba(56, 189, 248, 0.2){% endif %}; color: {% if application.status == 'Rejected' %}#ef4444{% elif application.status == 'INTERVIEW' %}#22c55e{% else %}#38bdf8{% endif %}; font-weight: 600;">
+                        {{ application.status }}
+                    </span>
+                    {% if application.offer_status and application.offer_status != 'pending' %}
+                    <span style="margin-left: 15px;">
+                        <strong>Offer:</strong>
+                        <span style="padding: 4px 12px; border-radius: 12px; background: {% if application.offer_status == 'accepted' %}rgba(34, 197, 94, 0.2){% elif application.offer_status == 'declined' %}rgba(239, 68, 68, 0.2){% else %}rgba(56, 189, 248, 0.2){% endif %}; color: {% if application.offer_status == 'accepted' %}#22c55e{% elif application.offer_status == 'declined' %}#ef4444{% else %}#38bdf8{% endif %}; font-weight: 600;">
+                            {{ application.offer_status|title }}
+                        </span>
+                    </span>
+                    {% endif %}
+                </p>
+            </div>
+            <a href="javascript:history.back()" class="btn" style="padding: 12px 24px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.4); color: var(--text-color-light); text-decoration: none; border-radius: 12px; font-weight: 600; transition: all 0.3s ease;">
+                ← Back
+            </a>
+        </div>
+    </div>
 
-    <h3>Scores</h3>
-    <ul>
-        <li>Resume score: {{ application.resume_score or '-' }}</li>
-        <li>LeetCode score: {{ application.leetcode_score or '-' }}</li>
-        <li>GitHub score: {{ application.github_score or '-' }}</li>
-        <li>Eligibility score: {{ application.eligibility_score or '-' }}</li>
-        <li>MCQ score: {{ application.mcq_score or '-' }}</li>
-        <li>Coding score: {{ application.coding_score or '-' }}</li>
-        <li>Interview score: {{ application.interview_score or '-' }}</li>
-    </ul>
+    <!-- Scores Overview Section -->
+    <div class="scores-overview" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)); backdrop-filter: blur(20px); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(148, 163, 184, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+        <h2 style="margin: 0 0 25px 0; font-size: 1.8em; font-weight: 700; color: var(--text-color-light); border-bottom: 2px solid rgba(56, 189, 248, 0.3); padding-bottom: 15px;">
+            📊 Scores Overview
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div class="score-card" style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                <div style="font-size: 0.9em; color: var(--text-color-faded); margin-bottom: 8px;">Resume Score</div>
+                <div style="font-size: 2em; font-weight: 700; color: {% if application.resume_score and application.resume_score >= 70 %}#22c55e{% elif application.resume_score and application.resume_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %};">
+                    {{ application.resume_score or '-' }}{% if application.resume_score %}/100{% endif %}
+                </div>
+            </div>
+            <div class="score-card" style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                <div style="font-size: 0.9em; color: var(--text-color-faded); margin-bottom: 8px;">LeetCode Score</div>
+                <div style="font-size: 2em; font-weight: 700; color: {% if application.leetcode_score and application.leetcode_score >= 70 %}#22c55e{% elif application.leetcode_score and application.leetcode_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %};">
+                    {{ application.leetcode_score or '-' }}{% if application.leetcode_score %}/100{% endif %}
+                </div>
+            </div>
+            <div class="score-card" style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                <div style="font-size: 0.9em; color: var(--text-color-faded); margin-bottom: 8px;">GitHub Score</div>
+                <div style="font-size: 2em; font-weight: 700; color: {% if application.github_score and application.github_score >= 70 %}#22c55e{% elif application.github_score and application.github_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %};">
+                    {{ application.github_score or '-' }}{% if application.github_score %}/100{% endif %}
+                </div>
+            </div>
+            <div class="score-card" style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                <div style="font-size: 0.9em; color: var(--text-color-faded); margin-bottom: 8px;">Eligibility Score</div>
+                <div style="font-size: 2em; font-weight: 700; color: {% if application.eligibility_score and application.eligibility_score >= 70 %}#22c55e{% elif application.eligibility_score and application.eligibility_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %};">
+                    {{ application.eligibility_score or '-' }}{% if application.eligibility_score %}/100{% endif %}
+                </div>
+            </div>
+            <div class="score-card" style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                <div style="font-size: 0.9em; color: var(--text-color-faded); margin-bottom: 8px;">MCQ Score</div>
+                <div style="font-size: 2em; font-weight: 700; color: {% if application.mcq_score and application.mcq_score >= 70 %}#22c55e{% elif application.mcq_score and application.mcq_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %};">
+                    {{ application.mcq_score or '-' }}{% if application.mcq_score %}/100{% endif %}
+                </div>
+            </div>
+            <div class="score-card" style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                <div style="font-size: 0.9em; color: var(--text-color-faded); margin-bottom: 8px;">Coding Score</div>
+                <div style="font-size: 2em; font-weight: 700; color: {% if application.coding_score and application.coding_score >= 70 %}#22c55e{% elif application.coding_score and application.coding_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %};">
+                    {{ application.coding_score or '-' }}{% if application.coding_score %}/100{% endif %}
+                </div>
+            </div>
+            <div class="score-card" style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                <div style="font-size: 0.9em; color: var(--text-color-faded); margin-bottom: 8px;">Interview Score</div>
+                <div style="font-size: 2em; font-weight: 700; color: {% if application.interview_score and application.interview_score >= 70 %}#22c55e{% elif application.interview_score and application.interview_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %};">
+                    {{ application.interview_score or '-' }}{% if application.interview_score %}/100{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+    <!-- Round 1: Initial Assessment -->
+    <div class="round-section" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)); backdrop-filter: blur(20px); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(148, 163, 184, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+        <h2 style="margin: 0 0 25px 0; font-size: 1.8em; font-weight: 700; color: var(--text-color-light); border-bottom: 2px solid rgba(56, 189, 248, 0.3); padding-bottom: 15px;">
+            🎯 Round 1: Initial Assessment
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 25px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2);">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.2em; color: var(--accent-color);">GitHub Profile</h3>
+                <p style="margin: 5px 0; color: var(--text-color-faded);">
+                    <strong>Score:</strong> 
+                    <span style="color: {% if application.github_score and application.github_score >= 70 %}#22c55e{% elif application.github_score and application.github_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %}; font-weight: 700;">
+                        {{ application.github_score or 'Not assessed' }}{% if application.github_score %}/100{% endif %}
+                    </span>
+                </p>
+                {% if application.Github %}
+                <p style="margin: 10px 0 0 0; color: var(--text-color-light);">
+                    <a href="{{ application.Github }}" target="_blank" style="color: var(--accent-color); text-decoration: none;">View Profile →</a>
+                </p>
+                {% endif %}
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 25px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2);">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.2em; color: var(--accent-color);">LeetCode Profile</h3>
+                <p style="margin: 5px 0; color: var(--text-color-faded);">
+                    <strong>Score:</strong> 
+                    <span style="color: {% if application.leetcode_score and application.leetcode_score >= 70 %}#22c55e{% elif application.leetcode_score and application.leetcode_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %}; font-weight: 700;">
+                        {{ application.leetcode_score or 'Not assessed' }}{% if application.leetcode_score %}/100{% endif %}
+                    </span>
+                </p>
+                {% if application.leetcode %}
+                <p style="margin: 10px 0 0 0; color: var(--text-color-light);">
+                    <a href="{{ application.leetcode }}" target="_blank" style="color: var(--accent-color); text-decoration: none;">View Profile →</a>
+                </p>
+                {% endif %}
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 25px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2);">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.2em; color: var(--accent-color);">Resume Assessment</h3>
+                <p style="margin: 5px 0; color: var(--text-color-faded);">
+                    <strong>Score:</strong> 
+                    <span style="color: {% if application.resume_score and application.resume_score >= 70 %}#22c55e{% elif application.resume_score and application.resume_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %}; font-weight: 700;">
+                        {{ application.resume_score or 'Not assessed' }}{% if application.resume_score %}/100{% endif %}
+                    </span>
+                </p>
+                {% if application.resume_path %}
+                <p style="margin: 10px 0 0 0; color: var(--text-color-light);">
+                    <a href="/{{ application.resume_path }}" target="_blank" style="color: var(--accent-color); text-decoration: none;">View Resume →</a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Round 2: MCQ Assessment -->
+    {% if mcq_data and mcq_data|length > 0 %}
+    <div class="round-section" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)); backdrop-filter: blur(20px); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(148, 163, 184, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); padding-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 1.8em; font-weight: 700; color: var(--text-color-light);">
+                📝 Round 2: MCQ Assessment
+            </h2>
+            <div style="padding: 8px 20px; background: rgba(15, 23, 42, 0.8); border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.3);">
+                <span style="color: var(--text-color-faded);">Score: </span>
+                <span style="color: {% if application.mcq_score and application.mcq_score >= 70 %}#22c55e{% elif application.mcq_score and application.mcq_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %}; font-weight: 700; font-size: 1.2em;">
+                    {{ application.mcq_score or '-' }}{% if application.mcq_score %}/100{% endif %}
+                </span>
+            </div>
+        </div>
+        {% for item in mcq_data %}
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 25px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 1.1em; color: var(--text-color-light); flex: 1;">Question {{ loop.index }}</h3>
+                {% if item.is_correct %}
+                <span style="padding: 4px 12px; background: rgba(34, 197, 94, 0.2); color: #22c55e; border-radius: 8px; font-size: 0.85em; font-weight: 600;">✓ Correct</span>
+                {% else %}
+                <span style="padding: 4px 12px; background: rgba(239, 68, 68, 0.2); color: #ef4444; border-radius: 8px; font-size: 0.85em; font-weight: 600;">✗ Incorrect</span>
+                {% endif %}
+            </div>
+            <p style="margin: 0 0 20px 0; color: var(--text-color-light); font-size: 1.05em; line-height: 1.6;">
+                {{ item.question }}
+            </p>
+            <div style="margin-bottom: 15px;">
+                <div style="color: var(--text-color-faded); font-size: 0.9em; margin-bottom: 8px;">Options:</div>
+                <div style="display: grid; gap: 8px;">
+                    {% for option in item.options %}
+                    <div style="padding: 10px 15px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid {% if option == item.correct_answer %}rgba(34, 197, 94, 0.4){% elif option == item.user_answer %}rgba(239, 68, 68, 0.4){% else %}rgba(148, 163, 184, 0.2){% endif %};">
+                        <span style="color: {% if option == item.correct_answer %}#22c55e{% elif option == item.user_answer %}#ef4444{% else %}var(--text-color-light){% endif %};">
+                            {% if option == item.correct_answer %}✓ {% endif %}
+                            {% if option == item.user_answer and not item.is_correct %}✗ {% endif %}
+                            {{ option }}
+                            {% if option == item.correct_answer %}<span style="margin-left: 10px; color: #22c55e; font-size: 0.85em;">(Correct Answer)</span>{% endif %}
+                            {% if option == item.user_answer %}<span style="margin-left: 10px; color: {% if item.is_correct %}#22c55e{% else %}#ef4444{% endif %}; font-size: 0.85em;">(Your Answer)</span>{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Round 3: Coding Assessment -->
+    {% if coding_data and coding_data|length > 0 %}
+    <div class="round-section" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)); backdrop-filter: blur(20px); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(148, 163, 184, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); padding-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 1.8em; font-weight: 700; color: var(--text-color-light);">
+                💻 Round 3: Coding Assessment
+            </h2>
+            <div style="padding: 8px 20px; background: rgba(15, 23, 42, 0.8); border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.3);">
+                <span style="color: var(--text-color-faded);">Score: </span>
+                <span style="color: {% if application.coding_score and application.coding_score >= 70 %}#22c55e{% elif application.coding_score and application.coding_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %}; font-weight: 700; font-size: 1.2em;">
+                    {{ application.coding_score or '-' }}{% if application.coding_score %}/100{% endif %}
+                </span>
+            </div>
+        </div>
+        {% for item in coding_data %}
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 25px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); margin-bottom: 20px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 1.1em; color: var(--text-color-light);">Question {{ loop.index }}</h3>
+            <p style="margin: 0 0 20px 0; color: var(--text-color-light); font-size: 1.05em; line-height: 1.6; white-space: pre-wrap;">
+                {{ item.question }}
+            </p>
+            <div style="margin-top: 20px;">
+                <div style="color: var(--text-color-faded); font-size: 0.9em; margin-bottom: 10px;">Submitted Code:</div>
+                <pre style="background: rgba(15, 23, 42, 0.9); padding: 20px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.3); overflow-x: auto; color: var(--text-color-light); font-family: 'Courier New', monospace; font-size: 0.9em; line-height: 1.5; margin: 0;"><code>{{ item.user_answer or '(No code submitted)' }}</code></pre>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Round 4: Interview Assessment -->
+    {% if interview_data and interview_data|length > 0 %}
+    <div class="round-section" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.75)); backdrop-filter: blur(20px); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(148, 163, 184, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); padding-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 1.8em; font-weight: 700; color: var(--text-color-light);">
+                🎤 Round 4: Interview Assessment
+            </h2>
+            <div style="padding: 8px 20px; background: rgba(15, 23, 42, 0.8); border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.3);">
+                <span style="color: var(--text-color-faded);">Score: </span>
+                <span style="color: {% if application.interview_score and application.interview_score >= 70 %}#22c55e{% elif application.interview_score and application.interview_score >= 50 %}#38bdf8{% else %}#ef4444{% endif %}; font-weight: 700; font-size: 1.2em;">
+                    {{ application.interview_score or '-' }}{% if application.interview_score %}/100{% endif %}
+                </span>
+            </div>
+        </div>
+        {% for item in interview_data %}
+        <div style="background: rgba(15, 23, 42, 0.6); padding: 25px; border-radius: 15px; border: 1px solid rgba(148, 163, 184, 0.2); margin-bottom: 20px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 1.1em; color: var(--text-color-light);">Question {{ loop.index }}</h3>
+            <p style="margin: 0 0 20px 0; color: var(--text-color-light); font-size: 1.05em; line-height: 1.6;">
+                {{ item.question }}
+            </p>
+            <div style="margin-top: 20px;">
+                <div style="color: var(--text-color-faded); font-size: 0.9em; margin-bottom: 10px;">Candidate's Answer:</div>
+                <div style="background: rgba(15, 23, 42, 0.9); padding: 20px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.3); color: var(--text-color-light); line-height: 1.6; white-space: pre-wrap;">
+                    {{ item.user_answer or '(No answer provided)' }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Rejection Reason (if applicable) -->
+    {% if application.reason_for_rejection %}
+    <div class="rejection-section" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.1)); backdrop-filter: blur(20px); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);">
+        <h2 style="margin: 0 0 15px 0; font-size: 1.5em; font-weight: 700; color: #ef4444;">📋 Feedback</h2>
+        <p style="margin: 0; color: var(--text-color-light); line-height: 1.6; font-size: 1.05em;">
+            {{ application.reason_for_rejection }}
+        </p>
+    </div>
+    {% endif %}
 </div>
-{% endblock %}
 
+<style>
+    .btn:hover {
+        background: rgba(56, 189, 248, 0.2) !important;
+        border-color: rgba(56, 189, 248, 0.5) !important;
+        transform: translateY(-2px);
+    }
+    
+    .score-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .score-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+</style>
+{% endblock %}

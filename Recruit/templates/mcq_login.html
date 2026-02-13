@@ -6,32 +6,39 @@
     <title>MCQ Test Login</title>
     <style>
         :root {
-            --surface-color-dark: #2a2a2a;
-            --shadow-color-dark: rgba(0,0,0,0.3);
-            --border-color-dark: #444;
-            --accent-color: #007bff;
-            --text-color-faded: #aaa;
-            --text-color-light: #e0e0e0;
-            --input-bg-dark: #333;
-            --button-bg-dark: #007bff;
-            --button-hover-dark: #0056b3;
+            --surface-color-dark: rgba(15, 23, 42, 0.9);
+            --shadow-color-dark: rgba(15, 23, 42, 0.9);
+            --border-color-dark: rgba(148, 163, 184, 0.6);
+            --accent-color: #38bdf8;
+            --text-color-faded: #9ca3af;
+            --text-color-light: #e5e7eb;
+            --input-bg-dark: rgba(15, 23, 42, 0.95);
+            --button-bg-dark: #38bdf8;
+            --button-hover-dark: #0ea5e9;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a1a;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.22), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.22), transparent 55%),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.2), transparent 50%),
+                #020617;
             color: var(--text-color-light);
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
         }
 
         .login-container {
             max-width: 450px;
-            margin: 60px auto;
+            margin: 80px auto;
             padding: 30px;
-            background-color: var(--surface-color-dark);
-            border-radius: 10px;
-            box-shadow: 0 3px 15px var(--shadow-color-dark);
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.9));
+            border-radius: 20px;
+            box-shadow:
+                0 24px 70px rgba(15, 23, 42, 0.96),
+                0 0 0 1px rgba(15, 23, 42, 0.9);
             border: 1px solid var(--border-color-dark);
         }
 
@@ -41,7 +48,7 @@
         }
 
         .login-title h1 {
-            color: var(--accent-color);
+            color: #f9fafb;
             margin: 0 0 8px 0;
             font-size: 2em;
         }

@@ -59,7 +59,7 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY environment variable is not set.")
-genai.configure(api_key="AIzaSyDpTo3DWAgrLh-ZLYhaZYY6EFwvLjWTIlk")
+genai.configure(api_key="AIzaSyAcAJFHI_jyahZa7bCC3s04yHm9ujbq2_I")
 
 # ==================== INTEGRATED EMAIL OFFER SYSTEM ====================
 
@@ -944,11 +944,11 @@ def _get_application_skills(application):
 
 
 def _generate_mcq_questions_gemini(skills):
-    """Generate MCQ questions using Gemini: 40% easy, 40% medium, 20% hard. Returns list of {question, option1..4, answer}."""
+    """Generate 5 MCQ questions using Gemini. Returns list of {question, option1..4, answer}."""
     model = genai.GenerativeModel('gemini-2.5-flash')
-    prompt = f"""You are a technical assessor. Generate exactly 10 multiple-choice questions (MCQs) based on these skills: {skills}.
+    prompt = f"""You are a technical assessor. Generate exactly 5 multiple-choice questions (MCQs) based on these skills: {skills}.
 
-Difficulty mix: 40% easy (4 questions), 40% medium (4 questions), 20% hard (2 questions). Order them: first 4 easy, then 4 medium, then 2 hard.
+    Difficulty mix: 40% easy (2 questions), 40% medium (2 questions), 20% hard (1 question). Order them: first easy, then medium, then hard.
 
 For each question provide:
 - question: the question text
@@ -965,24 +965,24 @@ Respond with ONLY a valid JSON object in this exact format, no markdown or extra
             text = re.sub(r"\n?```\s*$", "", text).strip()
         data = json.loads(text)
         questions = data.get("Questions") or []
-        return questions[:10]
+        return questions[:5]
     except Exception as e:
         logging.error(f"Gemini MCQ generation failed: {e}")
         return []
 
 
 def _generate_coding_questions_gemini(skills):
-    """Generate 2 coding questions: 1 easy, 1 medium. Returns {{ question1, question2 }}."""
+    """Generate 1 coding question. Returns { question1 }."""
     model = genai.GenerativeModel('gemini-2.5-flash')
-    prompt = f"""You are a technical assessor. Generate exactly 2 coding questions based on these skills: {skills}.
+    prompt = f"""Generate exactly 1 coding question based on these skills: {skills}.
 
-- Question 1: EASY (e.g. simple function, one concept).
-- Question 2: MEDIUM (e.g. array/string handling, two concepts).
+- The question should be EASY  (e.g. array/string or data structure manipulation).
 
-For each question provide clear problem statement, requirements, and one sample input/output if relevant.
+Provide a clear problem statement, requirements, and one sample input/output if relevant.
+It shouldnt be a big one it should be a easy a leet code question a dsa
 
 Respond with ONLY a valid JSON object in this exact format, no markdown or extra text:
-{{"Questions": [{{"question1": "First question full text...", "question2": "Second question full text..."}}]}}"""
+{{"Questions": [{{"question1": "Full question text..."}}]}}"""
     try:
         response = model.generate_content(prompt)
         text = (response.text or "").strip()
@@ -996,7 +996,7 @@ Respond with ONLY a valid JSON object in this exact format, no markdown or extra
         return {}
     except Exception as e:
         logging.error(f"Gemini coding questions generation failed: {e}")
-        return {"question1": "Write a function that returns the sum of two numbers.", "question2": "Write a function that takes a list of integers and returns the maximum value."}
+        return {"question1": "Write a function that returns the sum of two numbers."}
 
 
 @app.route('/api/mcq-login', methods=['POST'])
@@ -1042,7 +1042,7 @@ def api_mcq_questions():
 
 @app.route('/api/mcq-submit', methods=['POST'])
 def api_mcq_submit():
-    """Evaluate answers, store mcq_score, set status to CODING."""
+    """Evaluate answers, store mcq_score, decide progression or rejection."""
     if 'mcq_application_id' not in session:
         return jsonify({"success": False, "message": "Session expired or not logged in"}), 401
 
@@ -1051,7 +1051,8 @@ def api_mcq_submit():
     stored_questions = session.get('mcq_questions') or []
 
     application_id = session['mcq_application_id']
-    application = Application.query.get(application_id)
+    application = db.session.get(Application, application_id)
+
     if not application:
         return jsonify({"success": False, "message": "Application not found"}), 404
 
@@ -1067,13 +1068,81 @@ def api_mcq_submit():
 
     score = (correct / total * 100) if total else 0
     application.mcq_score = round(score, 2)
-    application.status = 'CODING'
-    try:
-        db.session.commit()
-        send_email(application.applicant_email, "MCQ Test Result",f"Your MCQ test score: {application.mcq_score}%. You have been moved to the CODING round. here is the link for the coding test: http://localhost:5000/coding-login")
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
+    
+    # Store MCQ questions and answers as JSON
+    mcq_data = []
+    for idx, q in enumerate(stored_questions):
+        user_opt = answers.get(str(idx))
+        # Extract options from option1, option2, option3, option4 fields
+        options_list = [
+            q.get('option1', ''),
+            q.get('option2', ''),
+            q.get('option3', ''),
+            q.get('option4', '')
+        ]
+        options_list = [opt for opt in options_list if opt]  # Remove empty options
+        
+        user_answer_text = ""
+        if user_opt is not None:
+            opt_idx = int(user_opt)
+            if 0 <= opt_idx < len(options_list):
+                user_answer_text = options_list[opt_idx]
+        
+        correct_answer_idx = int(q.get('answer', 1)) - 1 if q.get('answer') else 0
+        correct_answer_text = options_list[correct_answer_idx] if 0 <= correct_answer_idx < len(options_list) else ''
+        
+        mcq_data.append({
+            "question": q.get('question', ''),
+            "options": options_list,
+            "correct_answer": correct_answer_text,
+            "user_answer": user_answer_text,
+            "is_correct": user_opt is not None and int(user_opt) + 1 == int(q.get('answer', 0)) if q.get('answer') else False
+        })
+    application.mcq_questions = json.dumps(mcq_data)
+
+    # If score below threshold, reject with a gentle reason
+    if score < 40:
+        try:
+            reason = _generate_rejection_reason(
+                stage="MCQ",
+                score=score,
+                application=application,
+                extra_context=f"MCQ score was {score:.2f} out of 100."
+            )
+            application.reason_for_rejection = reason
+            application.status = "Rejected"
+            db.session.commit()
+            send_rejection_email(application.applicant_email, application.applicant_name, reason)
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": str(e)}), 500
+    else:
+        application.status = 'CODING'
+        try:
+            db.session.commit()
+            send_email(
+                application.applicant_email,
+                "MCQ Test Result",
+                f'''  Dear {application.applicant_name},
+
+Congratulations!
+
+You have successfully qualified in the MCQ assessment round.
+
+Based on your performance, you are now invited to proceed to the Coding Round.
+
+• Round: MCQ Assessment
+• SCORE: {score:.2f} out of 100  
+• Next Round Access Link: https://assessment-platform.com/mcq-login
+
+If you have any technical issues during the assessment, contact us immediately at gangolamanikanta@gmail.com.
+
+We wish you the best for the next stage.
+                '''
+            )
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": str(e)}), 500
 
     session.pop('mcq_questions', None)
     session.pop('mcq_application_id', None)
@@ -1114,6 +1183,8 @@ def api_coding_login():
     session['coding_application_id'] = application.id
     session['coding_questions'] = questions_list
     session['coding_user'] = username
+
+
     return jsonify({"success": True, "Questions": [{"question1": questions_list[0] if len(questions_list) > 0 else "", "question2": questions_list[1] if len(questions_list) > 1 else ""}]}), 200
 
 
@@ -1149,9 +1220,39 @@ Consider: correctness, readability, edge cases. Reply with ONLY a number between
         return 0
 
 
+def _generate_rejection_reason(stage, score, application, extra_context=""):
+    """Use Gemini to generate a short, encouraging rejection reason."""
+    model = genai.GenerativeModel('gemini-2.5-flash')
+    job = Job.query.get(application.job_id)
+    job_title = job.title if job else "the role"
+    prompt = f"""You are a kind and professional recruiter.
+
+We rejected a candidate at the {stage} stage for {job_title}.
+Their score was {score:.2f} out of 100.
+
+Additional context:
+{extra_context}
+
+Write a SINGLE short sentence (max 30 words) that:
+- briefly and neutrally explains what they should improve (skills, preparation, problem solving, communication etc.)
+- stays positive and encouraging
+- does NOT mention the exact score
+- does NOT sound harsh or rude.
+
+Return ONLY that one sentence, no other text."""
+    try:
+        response = model.generate_content(prompt)
+        text = (response.text or "").strip()
+        # Ensure it's a single line and not too long
+        return text.split("\n")[0][:240]
+    except Exception as e:
+        logging.warning(f"Gemini rejection reason failed: {e}")
+        return "Thank you for your effort. We encourage you to continue strengthening your skills and experience, and wish you the best for your future opportunities."
+
+
 @app.route('/api/coding-submit', methods=['POST'])
 def api_coding_submit():
-    """Evaluate code answers with Gemini, store coding_score, return result."""
+    """Evaluate code answers with Gemini, store coding_score, decide progression or rejection."""
     if 'coding_application_id' not in session:
         return jsonify({"success": False, "message": "Session expired or not logged in"}), 401
 
@@ -1160,7 +1261,7 @@ def api_coding_submit():
     questions = session.get('coding_questions') or []
 
     application_id = session['coding_application_id']
-    application = Application.query.get(application_id)
+    application = db.session.get(Application, application_id)
     if not application:
         return jsonify({"success": False, "message": "Application not found"}), 404
 
@@ -1172,13 +1273,61 @@ def api_coding_submit():
 
     coding_score = round(total_score / len(questions), 2) if questions else 0
     application.coding_score = coding_score
-    application.status = 'INTERVIEW'
-    try:
-        send_email(application.applicant_email,"Coding Test Result", f"Your coding test score: {application.coding_score}%. You have been moved to the INTERVIEW round. here is the link for the interview: http://localhost:5000/interview-login")
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
+    
+    # Store coding questions and answers as JSON
+    coding_data = []
+    for i, ans in enumerate(answers):
+        q_text = questions[i] if i < len(questions) else ""
+        code = ans.get('code_answer', '') if isinstance(ans, dict) else ''
+        coding_data.append({
+            "question": q_text,
+            "user_answer": code
+        })
+    application.coding_questions = json.dumps(coding_data)
+
+    if coding_score < 40:
+        try:
+            reason = _generate_rejection_reason(
+                stage="CODING",
+                score=coding_score,
+                application=application,
+                extra_context=f"Coding score was {coding_score:.2f} out of 100."
+            )
+            application.reason_for_rejection = reason
+            application.status = "Rejected"
+            db.session.commit()
+            send_rejection_email(application.applicant_email, application.applicant_name, reason)
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": str(e)}), 500
+    else:
+        application.status = 'INTERVIEW'
+        try:
+            send_email(
+                application.applicant_email,
+                "Coding Test Result",
+                f'''
+  Dear {application.applicant_name},
+
+Congratulations!
+
+You have successfully qualified in the CODING assessment round .
+
+Based on your performance, you are now invited to proceed to the Interview Round.
+
+• Round: Coding Assessment  
+• SCORE: {coding_score:.2f} out of 100
+• Next Round Access Link: https://assessment-platform.com/interview-login
+
+If you have any technical issues during the assessment, contact us immediately at gangolamanikanta@gmail.com.
+
+We wish you the best for the next stage.
+                '''
+            )
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": str(e)}), 500
 
     session.pop('coding_questions', None)
     session.pop('coding_application_id', None)
@@ -1189,13 +1338,13 @@ def api_coding_submit():
 # ==================== INTERVIEW (voice) APIs ====================
 
 def _generate_interview_questions_gemini(github_summary, resume_skills):
-    """Generate exactly 3 interview questions based ONLY on github_summary and resume_skills."""
+    """Generate exactly 1 interview question based ONLY on github_summary and resume_skills."""
     model = genai.GenerativeModel('gemini-2.5-flash')
     github_part = (github_summary or "").strip()
     skills_part = (resume_skills or "").strip()
     if not github_part and not skills_part:
         skills_part = "General technical and problem-solving skills"
-    prompt = f"""You are an interviewer. Generate exactly 3 interview questions based ONLY on the following two inputs. Do not use any other knowledge.
+    prompt = f"""You are an interviewer. Generate exactly 1 interview question based ONLY on the following two inputs. Do not use any other knowledge.
 
 1) GitHub summary:
 {github_part if github_part else "(No GitHub summary provided)"}
@@ -1203,8 +1352,8 @@ def _generate_interview_questions_gemini(github_summary, resume_skills):
 2) Resume skills:
 {skills_part}
 
-Return ONLY a valid JSON array of exactly 3 question strings, no other text. Example format:
-["First question text?", "Second question text?", "Third question text?"]"""
+Return ONLY a valid JSON array with exactly 1 question string, no other text. Example format:
+["Single question text?"]"""
     try:
         response = model.generate_content(prompt)
         text = (response.text or "").strip()
@@ -1212,15 +1361,13 @@ Return ONLY a valid JSON array of exactly 3 question strings, no other text. Exa
             text = re.sub(r"^```\w*\n?", "", text).strip()
             text = re.sub(r"\n?```\s*$", "", text).strip()
         arr = json.loads(text)
-        if isinstance(arr, list) and len(arr) >= 3:
-            return arr[:3]
+        if isinstance(arr, list) and len(arr) >= 1:
+            return arr[:1]
         return []
     except Exception as e:
         logging.error(f"Gemini interview questions generation failed: {e}")
         return [
-            "Tell us about a project from your GitHub or resume that you are proud of.",
-            "How do your resume skills apply to real-world problems?",
-            "What would you like to improve in your technical skills?"
+            "Tell us about a project from your GitHub or resume that you are proud of."
         ]
 
 
@@ -1254,13 +1401,13 @@ def api_interview_login():
         except Exception:
             questions_list = []
 
-    if len(questions_list) < 3:
+    if len(questions_list) < 1:
         github_summary = (application.github_summary or "").strip()
         skills = _get_application_skills(application)
         questions_list = _generate_interview_questions_gemini(github_summary, skills)
-        if len(questions_list) < 3:
+        if len(questions_list) < 1:
             return jsonify({"success": False, "message": "Failed to generate interview questions"}), 500
-        application.interview_questions = json.dumps(questions_list[:3])
+        application.interview_questions = json.dumps(questions_list[:1])
         try:
             db.session.commit()
         except Exception as e:
@@ -1268,14 +1415,14 @@ def api_interview_login():
             return jsonify({"success": False, "message": str(e)}), 500
 
     session['interview_application_id'] = application.id
-    session['interview_questions'] = questions_list[:3]
+    session['interview_questions'] = questions_list[:1]
     session['interview_user'] = username
     return jsonify({"success": True}), 200
 
 
 @app.route('/api/interview/questions', methods=['GET'])
 def api_interview_questions():
-    """Return the 3 interview questions (from session or from application in DB)."""
+    """Return the interview question(s) (from session or from application in DB)."""
     if 'interview_application_id' not in session:
         return jsonify({"success": False, "message": "Not logged in for interview"}), 401
 
@@ -1289,10 +1436,10 @@ def api_interview_questions():
         except Exception:
             questions = []
 
-    if not questions or len(questions) < 3:
+    if not questions or len(questions) < 1:
         return jsonify({"success": False, "message": "Interview questions not available"}), 404
 
-    return jsonify({"success": True, "Questions": questions[:3]}), 200
+    return jsonify({"success": True, "Questions": questions[:1]}), 200
 
 
 def _evaluate_interview_answer_gemini(question_text, answer_text):
@@ -1317,7 +1464,7 @@ Consider relevance, clarity, and depth. Reply with ONLY a single integer between
 
 @app.route('/api/interview-submit', methods=['POST'])
 def api_interview_submit():
-    """Evaluate 3 answers with Gemini, store interview_score."""
+    """Evaluate interview answer(s) with Gemini, store interview_score and possibly reject."""
     if 'interview_application_id' not in session:
         return jsonify({"success": False, "message": "Session expired or not logged in"}), 401
 
@@ -1326,24 +1473,50 @@ def api_interview_submit():
     questions = session.get('interview_questions') or []
 
     application_id = session['interview_application_id']
-    application = Application.query.get(application_id)
+    application = db.session.get(Application, application_id)
     if not application:
         return jsonify({"success": False, "message": "Application not found"}), 404
 
     total = 0
-    for i in range(3):
-        q_text = questions[i] if i < len(questions) else ""
-        a_text = answers[i] if i < len(answers) and isinstance(answers[i], str) else (answers[i].get('answer', '') if isinstance(answers[i], dict) else '')
+    for i, q_text in enumerate(questions):
+        a_text = answers[i] if i < len(answers) and isinstance(answers[i], str) else (answers[i].get('answer', '') if i < len(answers) and isinstance(answers[i], dict) else '')
         total += _evaluate_interview_answer_gemini(q_text, a_text)
 
-    interview_score = round(total / 3, 2) if questions else 0
+    interview_score = round(total / len(questions), 2) if questions else 0
     application.interview_score = interview_score
-    try:
-        db.session.commit()
-        send_email(application.applicant_email,"Interview","Thank you for attending the interview, results will announcded shortly")
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
+    
+    # Store interview questions and answers as JSON
+    interview_data = []
+    for i, q_text in enumerate(questions):
+        a_text = answers[i] if i < len(answers) and isinstance(answers[i], str) else (answers[i].get('answer', '') if i < len(answers) and isinstance(answers[i], dict) else '')
+        interview_data.append({
+            "question": q_text,
+            "user_answer": a_text
+        })
+    application.interview_questions = json.dumps(interview_data)
+
+    if interview_score < 40:
+        try:
+            reason = _generate_rejection_reason(
+                stage="INTERVIEW",
+                score=interview_score,
+                application=application,
+                extra_context=f"Interview score was {interview_score:.2f} out of 100."
+            )
+            application.reason_for_rejection = reason
+            application.status = "Rejected"
+            db.session.commit()
+            send_rejection_email(application.applicant_email, application.applicant_name, reason)
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": str(e)}), 500
+    else:
+        try:
+            db.session.commit()
+            send_email(application.applicant_email,"Interview","Thank you for attending the interview, results will announcded shortly")
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": str(e)}), 500
 
     session.pop('interview_questions', None)
     session.pop('interview_application_id', None)
@@ -1488,10 +1661,37 @@ def applicant_info():
 
 @app.route('/info/<int:application_id>/<student_name>', methods=['GET'])
 def applicant_detail(application_id, student_name):
-    """Simple detail page for a single applicant."""
+    """Detail page for a single applicant with round-by-round breakdown."""
     application = Application.query.get_or_404(application_id)
-    # Optionally, you can verify student_name matches application.applicant_name
-    return render_template('admins/applicant_detail.html', application=application)
+    
+    # Parse questions and answers from JSON fields
+    mcq_data = []
+    coding_data = []
+    interview_data = []
+    
+    if application.mcq_questions:
+        try:
+            mcq_data = json.loads(application.mcq_questions)
+        except:
+            mcq_data = []
+    
+    if application.coding_questions:
+        try:
+            coding_data = json.loads(application.coding_questions)
+        except:
+            coding_data = []
+    
+    if application.interview_questions:
+        try:
+            interview_data = json.loads(application.interview_questions)
+        except:
+            interview_data = []
+    
+    return render_template('admins/applicant_detail.html', 
+                         application=application,
+                         mcq_data=mcq_data,
+                         coding_data=coding_data,
+                         interview_data=interview_data)
 
 
 @app.route('/offers/send-top', methods=['POST'])

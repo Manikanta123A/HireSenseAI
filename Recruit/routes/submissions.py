@@ -4,7 +4,6 @@ import PyPDF2, json, re, os, uuid
 import google.generativeai as genai
 from werkzeug.utils import secure_filename
 import requests
-import google.generativeai as genai
 from PyPDF2 import PdfReader
 import re
 import json
@@ -263,6 +262,7 @@ def submit_application():
     job_id = request.form.get('jobId')
     name = request.form.get('name')
     applicant_age_str = request.form.get('age')
+    gender = request.form.get('gender')
     email = request.form.get('email')
     applicant_experience = request.form.get('experience')
     education = request.form.get('education')
@@ -271,8 +271,8 @@ def submit_application():
     Github = request.form.get('github')
     Linkedin = request.form.get('linkedin')
 
-    if not all([job_id, name, applicant_age_str, email, applicant_experience, education, resume_file,leetcode, Github, Linkedin]):
-        return jsonify({"message": "Missing required application fields."}), 400
+    if not all([job_id, name, applicant_age_str, gender, email, applicant_experience, education, resume_file, leetcode, Github, Linkedin]):
+        return jsonify({"message": "Missing required application fields (including gender)."}), 400
 
     job = db.session.get(Job, job_id)
     if not job:
@@ -321,6 +321,7 @@ def submit_application():
             job_id=job_id,
             applicant_name=name,
             applicant_age=applicant_age,
+            gender=gender,
             applicant_email=email,
             leetcode=leetcode,
             Github=Github,
@@ -339,7 +340,9 @@ def submit_application():
         db.session.add(new_application)
         try:
             db.session.commit()
-            send_email(email,'Next Round', 'Qualified for MCQ round , please use below link for it  http://localhost:5000/coding-login')
+            send_email(email,'Next Round', f'''
+Congratulations! You have cleared the initial screening round for the position of {job.title}. 
+Here is the link for the next round of assessment: http://localhost:5000/coding-login''')
             return jsonify({
                 "message": "Application submitted successfully! Please proceed to assessment.",
                 "job_id": job_id,
