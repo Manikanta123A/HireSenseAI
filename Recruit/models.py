@@ -73,6 +73,7 @@ class Application(db.Model):
     github_score = db.Column(db.Float)
     resume_score = db.Column(db.Float)
     offer_status = db.Column(db.String(50), default="pending")
+    gender = db.Column(db.String(10))
 
 
     job = db.relationship('Job', backref=db.backref('application', lazy=True))

@@ -4,188 +4,163 @@
 
 {% block head_extra %}
 <style>
-    .applicant-wrapper {
-        max-width: 1100px;
-        margin: 40px auto;
-        padding: 24px 28px;
-        background-color: var(--surface-color-dark);
-        border-radius: 10px;
-        box-shadow: 0 4px 15px var(--shadow-color-dark);
-        border: 1px solid var(--border-color-dark);
-    }
+.applicant-wrapper {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: var(--surface-color-dark);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px var(--shadow-color-dark);
+    border: 1px solid var(--border-color-dark);
+}
 
-    .applicant-header {
-        margin-bottom: 20px;
-    }
+/* Header */
+.applicant-header h1 {
+    margin: 0 0 6px;
+    font-size: 2.2em;
+    color: var(--accent-color);
+}
 
-    .applicant-header h1 {
-        margin: 0 0 6px;
-        font-size: 2.2em;
-        color: var(--accent-color);
-    }
+.applicant-header p {
+    margin: 0;
+    color: var(--text-color-faded);
+}
 
-    .applicant-header p {
-        margin: 0;
-        color: var(--text-color-faded);
-        font-size: 0.95em;
-    }
+/* Round Tabs evenly spaced */
+.round-row {
+    margin-top: 30px;
+}
 
-    .round-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin: 24px 0 12px;
-    }
+.round-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
 
-    .round-tabs {
-        display: flex;
-        gap: 10px;
-        border-bottom: 1px solid var(--border-color-dark);
-        padding-bottom: 4px;
-    }
+.round-tab {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color-dark);
+    background: #1f2937;
+    color: var(--text-color-faded);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
 
-    .round-tab {
-        padding: 8px 14px;
-        border-radius: 16px 16px 0 0;
-        cursor: pointer;
-        border: 1px solid transparent;
-        border-bottom: none;
-        color: var(--text-color-faded);
-        font-weight: 500;
-        background-color: transparent;
-        font-size: 0.9em;
-        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    }
+.round-tab.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: white;
+}
 
-    .round-tab.active {
-        color: var(--text-color-light);
-        background-color: #2d2d2d;
-        border-color: var(--border-color-dark);
-    }
+.round-tab:hover {
+    background: #334155;
+    color: var(--text-color-light);
+}
 
-    .round-tab:hover {
-        color: var(--text-color-light);
-        background-color: #333333;
-    }
+/* Table */
+.table-scroll {
+    overflow-x: auto;
+}
 
-    .round-label {
-        font-size: 0.78em;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        opacity: 0.8;
-    }
+.applicants-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
 
-    .table-scroll {
-        margin-top: 8px;
-        overflow-x: auto;
-    }
+.applicants-table th,
+.applicants-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #333;
+    text-align: left;
+}
 
-    .applicants-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.82em;
-        min-width: 900px;
-        table-layout: auto;
-    }
+.applicants-table thead {
+    background-color: #1e293b;
+}
 
-    .applicants-table thead {
-        background-color: #2a2a2a;
-    }
+.applicants-table tbody tr:hover {
+    background-color: rgba(255,255,255,0.04);
+}
 
-    .applicants-table th,
-    .applicants-table td {
-        padding: 8px 10px;
-        text-align: left;
-        border-bottom: 1px solid #333;
-        white-space: nowrap;
-    }
+/* Score pill */
+.score-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background-color: rgba(34,197,94,0.15);
+    color: #22c55e;
+}
 
-    .applicants-table th {
-        font-weight: 600;
-        color: var(--text-color-light);
-    }
+/* Expand button */
+.expand-btn {
+    background: #334155;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
 
-    .applicants-table tbody tr {
-        cursor: pointer;
-        transition: background-color 0.15s ease;
-    }
+/* Detail row */
+.detail-box {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    position: relative;
+}
 
-    .applicants-table tbody tr:hover {
-        background-color: rgba(255, 255, 255, 0.04);
-    }
+.close-detail {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: #ef4444;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
 
-    .score-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 3px 8px;
-        border-radius: 999px;
-        font-size: 0.82em;
-        background-color: rgba(76, 175, 80, 0.15);
-        color: #8be78b;
-    }
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-color-faded);
+}
 
-    .empty-state {
-        text-align: center;
-        padding: 28px 10px;
-        color: var(--text-color-faded);
-        font-size: 0.95em;
-    }
-
-    .send-offers-btn {
-        display: none;
-        padding: 8px 16px;
-        border-radius: 18px;
-        border: none;
-        background-color: var(--button-bg-dark);
-        color: var(--text-color-light);
-        font-size: 0.85em;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: 0 2px 8px var(--shadow-color-dark);
-        transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    }
-
-    .send-offers-btn:hover {
-        background-color: var(--button-hover-dark);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px var(--shadow-color-dark);
-    }
-
-    .send-offers-btn:disabled {
-        opacity: 0.6;
-        cursor: default;
-        transform: none;
-        box-shadow: none;
-    }
+.send-offers-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    background-color: var(--button-bg-dark);
+    color: var(--text-color-light);
+    font-weight: 600;
+    cursor: pointer;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="applicant-wrapper">
+
     <div class="applicant-header">
         <h1>Applicants for {{ job.title }}</h1>
-        <p>Best fit to least fit based on combined scores.</p>
+        <p>Sorted best to least fit</p>
     </div>
 
     <div class="round-row">
         <div class="round-tabs">
-            <button class="round-tab active" data-round="1">
-                <div>Round 1</div>
-                <div class="round-label">Profile & resume</div>
-            </button>
-            <button class="round-tab" data-round="2">
-                <div>Round 2</div>
-                <div class="round-label">+ MCQ score</div>
-            </button>
-            <button class="round-tab" data-round="3">
-                <div>Round 3</div>
-                <div class="round-label">+ Coding score</div>
-            </button>
-            <button class="round-tab" data-round="4">
-                <div>Round 4</div>
-                <div class="round-label">+ Interview score</div>
-            </button>
+            <button class="round-tab active" data-round="1">Round 1</button>
+            <button class="round-tab" data-round="2">Round 2</button>
+            <button class="round-tab" data-round="3">Round 3</button>
+            <button class="round-tab" data-round="4">Round 4</button>
         </div>
         <button id="sendOffersBtn" class="send-offers-btn">
             Send to top {{ job.number_of_positions }}
@@ -196,160 +171,180 @@
 </div>
 
 <script>
-    (function () {
-        const roundData = {
-            1: {{ round1|tojson }},
-            2: {{ round2|tojson }},
-            3: {{ round3|tojson }},
-            4: {{ round4|tojson }}
-        };
+(function () {
 
-        const extraColumnsByRound = {
-            1: [],
-            2: [{ key: 'mcq_score', label: 'MCQ Score' }],
-            3: [{ key: 'mcq_score', label: 'MCQ Score' }, { key: 'coding_score', label: 'Coding Score' }],
-            4: [
-                { key: 'mcq_score', label: 'MCQ Score' },
-                { key: 'coding_score', label: 'Coding Score' },
-                { key: 'interview_score', label: 'Interview Score' },
-                { key: 'offer_status', label: 'Offer Status' }
-            ]
-        };
+    const roundData = {
+        1: {{ round1|tojson }},
+        2: {{ round2|tojson }},
+        3: {{ round3|tojson }},
+        4: {{ round4|tojson }}
+    };
 
-        const baseColumns = [
-            { key: 'name', label: 'Name' },
-            { key: 'email', label: 'Email' },
-            { key: 'resume_score', label: 'Resume Score' },
-            { key: 'leetcode_score', label: 'LeetCode Score' },
-            { key: 'github_score', label: 'GitHub Score' },
-            { key: 'eligibility_score', label: 'Eligibility Score' },
-            { key: 'score', label: 'Total Score' }
-        ];
+    const tableContainer = document.getElementById('tableContainer');
+    const sendOffersBtn = document.getElementById('sendOffersBtn');
+    const numberOfPositions = {{ job.number_of_positions or 0 }};
+    const jobId = {{ job.id }};
 
-        const tableContainer = document.getElementById('tableContainer');
-        const sendOffersBtn = document.getElementById('sendOffersBtn');
-        const numberOfPositions = {{ job.number_of_positions or 0 }};
-        const jobId = {{ job.id }};
-
-        function renderRound(round) {
-            const data = roundData[round] || [];
-
-            if (!data.length) {
-                tableContainer.innerHTML =
-                    '<div class="empty-state">No candidates available for this round.</div>';
-                return;
-            }
-
-            const columns = baseColumns.concat(extraColumnsByRound[round] || []);
-
-            let thead = '<thead><tr>';
-            columns.forEach(col => {
-                thead += `<th>${col.label}</th>`;
-            });
-            thead += '</tr></thead>';
-
-            let tbody = '<tbody>';
-            data.forEach(row => {
-                const safeName = encodeURIComponent(row.name);
-                tbody += `<tr data-app-id="${row.id}" data-name="${safeName}">`;
-                columns.forEach(col => {
-                    let value = row[col.key];
-                    if (value === null || value === undefined || value === '') {
-                        value = '-';
-                    }
-                    if (col.key === 'score') {
-                        tbody += `<td><span class="score-pill">${value}</span></td>`;
-                    } else if (col.key === 'offer_status') {
-                        tbody += `<td>${value}</td>`;
-                    } else {
-                        tbody += `<td>${value}</td>`;
-                    }
-                });
-                tbody += '</tr>';
-            });
-            tbody += '</tbody>';
-
-            tableContainer.innerHTML =
-                `<table class="applicants-table">${thead}${tbody}</table>`;
-
-            // Row click -> /info/<id>/<student_name>
-            tableContainer.querySelectorAll('tbody tr').forEach(tr => {
-                tr.addEventListener('click', function () {
-                    const appId = this.dataset.appId;
-                    const name = this.dataset.name;
-                    window.location.href = `/info/${appId}/${name}`;
-                });
-            });
-
-            // Show send button only on Round 4
-            if (sendOffersBtn) {
-                if (String(round) === '4') {
-                    sendOffersBtn.style.display = 'inline-flex';
-                } else {
-                    sendOffersBtn.style.display = 'none';
-                }
-            }
+    function getColumnsForRound(round) {
+        if (round == 1) {
+            return [
+                { key: 'name', label: 'Name' },
+                { key: 'leetcode_score', label: 'LeetCode' },
+                { key: 'github_score', label: 'GitHub' },
+                { key: 'resume_score', label: 'Resume' },
+                { key: 'score', label: 'Final Score' }
+            ];
         }
 
-        // Tab switching
-        document.querySelectorAll('.round-tab').forEach(tab => {
-            tab.addEventListener('click', function () {
-                document.querySelectorAll('.round-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                const round = this.dataset.round;
-                renderRound(round);
+        if (round == 2) {
+            return [
+                { key: 'name', label: 'Name' },
+                { key: 'score', label: 'Final Score' },
+                { key: 'mcq_score', label: 'MCQ Score' }
+            ];
+        }
+
+        if (round == 3) {
+            return [
+                { key: 'name', label: 'Name' },
+                { key: 'mcq_score', label: 'MCQ Score' },
+                { key: 'coding_score', label: 'Coding Score' }
+            ];
+        }
+
+        if (round == 4) {
+            return [
+                { key: 'name', label: 'Name' },
+                { key: 'interview_score', label: 'Interview Score' },
+                { key: 'offer_status', label: 'Offer Status' }
+            ];
+        }
+    }
+
+    function renderRound(round) {
+
+        const data = roundData[round] || [];
+
+        if (!data.length) {
+            tableContainer.innerHTML =
+                '<div class="empty-state">No candidates available for this round.</div>';
+            return;
+        }
+
+        const columns = getColumnsForRound(round);
+
+        let thead = '<thead><tr>';
+        columns.forEach(col => {
+            thead += `<th>${col.label}</th>`;
+        });
+        thead += '<th></th></tr></thead>';
+
+        let tbody = '<tbody>';
+
+        data.forEach(row => {
+
+            tbody += `<tr class="main-row">`;
+
+            columns.forEach(col => {
+                let value = row[col.key] ?? '-';
+
+                if (col.key === 'score') {
+                    tbody += `<td><span class="score-pill">${value}</span></td>`;
+                } else {
+                    tbody += `<td>${value}</td>`;
+                }
+            });
+
+            tbody += `
+                <td><button class="expand-btn">^</button></td>
+            </tr>
+
+            <tr class="detail-row" style="display:none;">
+                <td colspan="${columns.length + 1}">
+                    <div class="detail-box">
+                        <button class="close-detail">×</button>
+                        <div><strong>Email:</strong> ${row.email ?? '-'}</div>
+                        <div><strong>MCQ Score:</strong> ${row.mcq_score ?? '-'}</div>
+                        <div><strong>Coding Score:</strong> ${row.coding_score ?? '-'}</div>
+                        <div><strong>Interview Score:</strong> ${row.interview_score ?? '-'}</div>
+                        <div><strong>Eligibility Score:</strong> ${row.eligibility_score ?? '-'}</div>
+                    </div>
+                </td>
+            </tr>
+            `;
+        });
+
+        tbody += '</tbody>';
+
+        tableContainer.innerHTML =
+            `<table class="applicants-table">${thead}${tbody}</table>`;
+
+        document.querySelectorAll('.expand-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const detailRow = this.closest('tr').nextElementSibling;
+                detailRow.style.display = 'table-row';
+            });
+        });
+
+        document.querySelectorAll('.close-detail').forEach(btn => {
+            btn.addEventListener('click', function () {
+                this.closest('.detail-row').style.display = 'none';
             });
         });
 
         if (sendOffersBtn) {
-            sendOffersBtn.addEventListener('click', async function () {
-                if (!numberOfPositions || numberOfPositions <= 0) {
-                    alert('Number of positions is not configured for this job.');
-                    return;
-                }
-                this.disabled = true;
-                this.textContent = 'Sending...';
+            sendOffersBtn.style.display = (round == 4) ? 'inline-block' : 'none';
+        }
+    }
 
-                try {
-                    const resp = await fetch('/offers/send-top', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ job_id: jobId })
-                    });
-                    const result = await resp.json();
-                    if (!resp.ok) {
-                        alert(result.message || 'Failed to send offers');
-                        this.disabled = false;
-                        this.textContent = 'Send to top ' + numberOfPositions;
-                        return;
-                    }
+    document.querySelectorAll('.round-tab').forEach(tab => {
+        tab.addEventListener('click', function () {
+            document.querySelectorAll('.round-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            renderRound(this.dataset.round);
+        });
+    });
 
-                    const updatedIds = result.updated_ids || [];
-                    const data = roundData[4] || [];
-                    data.forEach(row => {
-                        if (updatedIds.includes(row.id)) {
-                            row.offer_status = 'offer_sent';
-                        } else if (!row.offer_status) {
-                            row.offer_status = row.offer_status || '-';
-                        }
-                    });
+    if (sendOffersBtn) {
+        sendOffersBtn.addEventListener('click', async function () {
+            if (!numberOfPositions || numberOfPositions <= 0) {
+                alert('Number of positions not configured.');
+                return;
+            }
 
-                    renderRound(4);
-                    this.textContent = 'Offers sent to top ' + numberOfPositions;
-                } catch (e) {
-                    console.error('Error sending offers:', e);
-                    alert('Error sending offers. Please try again.');
+            this.disabled = true;
+            this.textContent = 'Sending...';
+
+            try {
+                const resp = await fetch('/offers/send-top', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: jobId })
+                });
+
+                const result = await resp.json();
+
+                if (!resp.ok) {
+                    alert(result.message || 'Failed to send offers');
                     this.disabled = false;
                     this.textContent = 'Send to top ' + numberOfPositions;
+                    return;
                 }
-            });
-        }
 
-        // Initial render: Round 1
-        renderRound(1);
-    })();
+                renderRound(4);
+                this.textContent = 'Offers sent';
+
+            } catch (e) {
+                alert('Error sending offers.');
+                this.disabled = false;
+                this.textContent = 'Send to top ' + numberOfPositions;
+            }
+        });
+    }
+
+    renderRound(1);
+
+})();
 </script>
 {% endblock %}
-
