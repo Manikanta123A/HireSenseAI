@@ -974,15 +974,54 @@ Respond with ONLY a valid JSON object in this exact format, no markdown or extra
 def _generate_coding_questions_gemini(skills):
     """Generate 1 coding question. Returns { question1 }."""
     model = genai.GenerativeModel('gemini-2.5-flash')
-    prompt = f"""Generate exactly 1 coding question based on these skills: {skills}.
+    prompt = f"""
+You are an expert Data Structures and Algorithms problem designer.
 
-- The question should be EASY  (e.g. array/string or data structure manipulation).
+Your task is to generate exactly ONE EASY-level DSA coding question.
 
-Provide a clear problem statement, requirements, and one sample input/output if relevant.
-It shouldnt be a big one it should be a easy a leet code question a dsa
+Follow the steps internally before generating output:
 
-Respond with ONLY a valid JSON object in this exact format, no markdown or extra text:
-{{"Questions": [{{"question1": "Full question text..."}}]}}"""
+Step 1:
+From the given skills: {skills}
+Identify relevant DSA-related concepts only (e.g., arrays, strings, hashing, stacks, queues, linked lists, basic recursion, basic sorting, simple maps/dictionaries).
+Ignore non-DSA skills.
+
+Step 2:
+Select exactly ONE fundamental concept from the filtered list.
+
+Step 3:
+Design a beginner-level problem based on that concept.
+The difficulty must be EASY:
+- Solvable in under 20 minutes
+- No advanced algorithms
+- No dynamic programming
+- No graph traversal
+- No complex math
+- No multi-step optimizations
+
+Step 4:
+The problem must:
+- Be concise (under 200 words)
+- Contain a clear task
+- Define input format
+- Define output format
+- Include exactly ONE simple sample input/output
+- Not specify any programming language
+- Not include solution or hints
+- Not include explanation
+
+Step 5:
+Ensure the question resembles an entry-level LeetCode-style DSA problem.
+
+Return ONLY a valid JSON object in this exact format.
+Do not include markdown.
+Do not include extra text.
+Do not include explanation.
+
+Format strictly:
+
+{{"Questions": [{{"question1": "Full question text here..."}}]}}
+"""
     try:
         response = model.generate_content(prompt)
         text = (response.text or "").strip()
@@ -1285,25 +1324,11 @@ def api_coding_submit():
         })
     application.coding_questions = json.dumps(coding_data)
 
-    if coding_score < 40:
-        try:
-            reason = _generate_rejection_reason(
-                stage="CODING",
-                score=coding_score,
-                application=application,
-                extra_context=f"Coding score was {coding_score:.2f} out of 100."
-            )
-            application.reason_for_rejection = reason
-            application.status = "Rejected"
-            db.session.commit()
-            send_rejection_email(application.applicant_email, application.applicant_name, reason)
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"success": False, "message": str(e)}), 500
-    else:
-        application.status = 'INTERVIEW'
-        try:
-            send_email(
+   
+    application.status = 'INTERVIEW'
+
+    try:
+        send_email(
                 application.applicant_email,
                 "Coding Test Result",
                 f'''
@@ -1324,8 +1349,8 @@ If you have any technical issues during the assessment, contact us immediately a
 We wish you the best for the next stage.
                 '''
             )
-            db.session.commit()
-        except Exception as e:
+        db.session.commit()
+    except Exception as e:
             db.session.rollback()
             return jsonify({"success": False, "message": str(e)}), 500
 
@@ -1495,28 +1520,13 @@ def api_interview_submit():
         })
     application.interview_questions = json.dumps(interview_data)
 
-    if interview_score < 40:
-        try:
-            reason = _generate_rejection_reason(
-                stage="INTERVIEW",
-                score=interview_score,
-                application=application,
-                extra_context=f"Interview score was {interview_score:.2f} out of 100."
-            )
-            application.reason_for_rejection = reason
-            application.status = "Rejected"
-            db.session.commit()
-            send_rejection_email(application.applicant_email, application.applicant_name, reason)
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"success": False, "message": str(e)}), 500
-    else:
-        try:
-            db.session.commit()
-            send_email(application.applicant_email,"Interview","Thank you for attending the interview, results will announcded shortly")
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"success": False, "message": str(e)}), 500
+    
+    try:
+        db.session.commit()
+        send_email(application.applicant_email,"Interview","Thank you for attending the interview, results will announcded shortly")
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
 
     session.pop('interview_questions', None)
     session.pop('interview_application_id', None)
