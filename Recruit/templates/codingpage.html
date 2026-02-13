@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Assessment</title>
+    <style>
+        :root {
+            --surface-color-dark: #2a2a2a;
+            --shadow-color-dark: rgba(0,0,0,0.3);
+            --border-color-dark: #444;
+            --accent-color: #007bff;
+            --text-color-faded: #aaa;
+            --text-color-light: #e0e0e0;
+            --input-bg-dark: #333;
+            --button-bg-dark: #007bff;
+            --button-hover-dark: #0056b3;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: var(--text-color-light);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .coding-page-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: var(--surface-color-dark);
+            border-radius: 10px;
+            box-shadow: 0 3px 15px var(--shadow-color-dark);
+            border: 1px solid var(--border-color-dark);
+            display: flex;
+            gap: 20px;
+        }
+
+        .coding-topbar {
+            max-width: 1400px;
+            margin: 0 auto 15px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .coding-topbar h1 {
+            color: var(--accent-color);
+            font-size: 1.6em;
+            margin: 0;
+        }
+
+        .timer-text {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .submit-top-btn {
+            padding: 10px 24px;
+            background-color: var(--button-bg-dark);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-top-btn:hover {
+            background-color: var(--button-hover-dark);
+        }
+
+        .submit-top-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        .coding-page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px 20px;
+            display: flex;
+            gap: 20px;
+            min-height: 70vh;
+        }
+
+        .left-panel {
+            width: 380px;
+            min-width: 320px;
+            background-color: var(--surface-color-dark);
+            border-radius: 8px;
+            border: 1px solid var(--border-color-dark);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .question-switcher {
+            display: flex;
+            border-bottom: 1px solid var(--border-color-dark);
+            padding: 0;
+        }
+
+        .question-switcher .question-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 0;
+            border-bottom: 3px solid transparent;
+            background: #242424;
+            color: var(--text-color-light);
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+
+        .question-switcher .question-tab.active {
+            background: #2a2a2a;
+            border-bottom-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .question-switcher .question-tab.answered:not(.active) {
+            color: #28a745;
+        }
+
+        .question-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .question-content .question-text {
+            font-size: 1.05em;
+            color: var(--text-color-light);
+            white-space: pre-wrap;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .code-editor-label {
+            font-size: 0.9em;
+            color: var(--text-color-faded);
+            margin-bottom: 8px;
+        }
+
+        .code-editor {
+            width: 100%;
+            flex: 1;
+            min-height: 400px;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color-dark);
+            background-color: #202020;
+            color: #f5f5f5;
+            font-family: "Fira Code", "Cascadia Code", Consolas, monospace;
+            font-size: 0.95em;
+            resize: vertical;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 900px) {
+            .coding-page-container {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                width: 100%;
+                min-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="coding-topbar">
+        <h1>Coding Test</h1>
+        <span class="timer-text">Time Remaining: <span id="codingTimerDisplay">45:00</span></span>
+        <button type="button" id="submitCodingBtn" class="submit-top-btn">Submit</button>
+    </div>
+
+    <div class="coding-page-container">
+        <aside class="left-panel">
+            <div class="question-switcher" id="questionSwitcher">
+                <!-- Question 1 / Question 2 tabs injected by JS -->
+            </div>
+            <div class="question-content">
+                <p class="question-text" id="questionText">Loading coding questions...</p>
+            </div>
+        </aside>
+
+        <main class="right-panel">
+            <div class="code-editor-label">Your solution (any language):</div>
+            <textarea id="codeEditor" class="code-editor" spellcheck="false" placeholder="// Write your code here"></textarea>
+        </main>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentIndex = 0;
+        const answers = {};
+        let codingTimerInterval = null;
+        let codingTimeRemaining = 45 * 60;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCodingQuestionsFromApi();
+            document.getElementById('codeEditor').addEventListener('input', handleEditorInput);
+            document.getElementById('submitCodingBtn').addEventListener('click', () => handleSubmit(false));
+            startCodingTimer();
+        });
+
+        function startCodingTimer() {
+            const display = document.getElementById('codingTimerDisplay');
+            codingTimerInterval = setInterval(() => {
+                const minutes = Math.floor(codingTimeRemaining / 60);
+                const seconds = codingTimeRemaining % 60;
+                display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                if (codingTimeRemaining <= 0) {
+                    clearInterval(codingTimerInterval);
+                    display.textContent = '00:00';
+                    handleSubmit(true);
+                }
+                codingTimeRemaining--;
+            }, 1000);
+        }
+
+        async function loadCodingQuestionsFromApi() {
+            try {
+                const response = await fetch('/api/coding/questions');
+                const data = await response.json().catch(() => ({}));
+                if (response.status === 401 || !data.success) {
+                    window.location.href = '/coding-login';
+                    return;
+                }
+                hydrateQuestionsFromApiShape(data);
+            } catch (err) {
+                console.error(err);
+                window.location.href = '/coding-login';
+            }
+        }
+
+        function hydrateQuestionsFromApiShape(data) {
+            if (!data || !Array.isArray(data.Questions) || data.Questions.length === 0) {
+                questions = [];
+            } else {
+                const first = data.Questions[0] || {};
+                questions = [];
+                if (first.question1) questions.push(first.question1);
+                if (first.question2) questions.push(first.question2);
+            }
+
+            if (!questions.length) {
+                document.getElementById('questionText').textContent = 'No coding questions available.';
+                document.getElementById('codeEditor').disabled = true;
+                document.getElementById('submitCodingBtn').disabled = true;
+                return;
+            }
+
+            buildQuestionSwitcher();
+            renderCurrentQuestion();
+        }
+
+        function buildQuestionSwitcher() {
+            const el = document.getElementById('questionSwitcher');
+            el.innerHTML = '';
+            questions.forEach((_, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'question-tab';
+                btn.textContent = `Question ${idx + 1}`;
+                btn.dataset.index = idx;
+                btn.addEventListener('click', () => switchQuestion(idx));
+                el.appendChild(btn);
+            });
+            updateSwitcherUI();
+        }
+
+        function switchQuestion(newIndex) {
+            if (newIndex === currentIndex) return;
+            const editor = document.getElementById('codeEditor');
+            answers[currentIndex] = editor.value;
+            currentIndex = newIndex;
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            document.getElementById('questionText').textContent = questions[currentIndex] || 'Question text not available.';
+            document.getElementById('codeEditor').value = answers[currentIndex] || '';
+            updateSwitcherUI();
+        }
+
+        function handleEditorInput(e) {
+            answers[currentIndex] = e.target.value;
+            updateSwitcherUI();
+        }
+
+        function updateSwitcherUI() {
+            document.querySelectorAll('.question-switcher .question-tab').forEach((tab) => {
+                const idx = parseInt(tab.dataset.index, 10);
+                tab.classList.toggle('active', idx === currentIndex);
+                tab.classList.toggle('answered', answers[idx] && answers[idx].trim().length > 0);
+            });
+        }
+
+        async function handleSubmit(isAuto) {
+            if (codingTimerInterval) {
+                clearInterval(codingTimerInterval);
+                codingTimerInterval = null;
+            }
+            const editor = document.getElementById('codeEditor');
+            answers[currentIndex] = editor.value;
+
+            const payload = questions.map((q, idx) => ({
+                question_index: idx,
+                question_text: q,
+                code_answer: answers[idx] || ''
+            }));
+
+            const btn = document.getElementById('submitCodingBtn');
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            try {
+                const res = await fetch('/api/coding-submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answers: payload })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.success) {
+                    alert(isAuto ? 'Time is over. Your coding test has been auto-submitted.' : 'Submitted successfully.\nScore: ' + (data.score != null ? data.score.toFixed(1) + '%' : ''));
+                    window.location.href = '/coding-login';
+                    return;
+                }
+                alert(data.message || 'Submit failed. Please try again.');
+            } catch (err) {
+                alert('Network error. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit';
+            }
+        }
+    </script>
+</body>
+</html>
+

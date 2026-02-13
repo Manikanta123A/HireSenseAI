@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Assessment</title>
+    <style>
+        :root {
+            --surface-color-dark: #2a2a2a;
+            --shadow-color-dark: rgba(0,0,0,0.3);
+            --border-color-dark: #444;
+            --accent-color: #007bff;
+            --text-color-faded: #aaa;
+            --text-color-light: #e0e0e0;
+            --input-bg-dark: #333;
+            --button-bg-dark: #007bff;
+            --button-hover-dark: #0056b3;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: var(--text-color-light);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .mcq-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: var(--surface-color-dark);
+            border-radius: 10px;
+            box-shadow: 0 3px 15px var(--shadow-color-dark);
+            border: 1px solid var(--border-color-dark);
+        }
+
+        .mcq-container h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            font-size: 2.2em;
+        }
+
+        .question-card {
+            background-color: #3a3a3a;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color-dark);
+            box-shadow: 0 2px 8px var(--shadow-color-dark);
+        }
+
+        .question-number {
+            font-weight: bold;
+            color: var(--text-color-faded);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            color: var(--text-color-light);
+            margin-bottom: 20px;
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .options-list li {
+            margin-bottom: 10px;
+        }
+
+        .options-list input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+            vertical-align: middle;
+        }
+
+        .options-list label {
+            cursor: pointer;
+            font-size: 1.05em;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--button-bg-dark);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--button-hover-dark);
+        }
+
+        .btn[disabled] {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        .status-text {
+            text-align: center;
+            margin-top: 10px;
+            color: var(--text-color-faded);
+            font-size: 0.95em;
+        }
+
+        .timer-text {
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="mcq-container">
+        <h1>MCQ Test</h1>
+        <p class="timer-text">Time Remaining: <span id="timerDisplay">15:00</span></p>
+
+        <div id="questionWrapper">
+            <div class="question-card">
+                <p class="question-number" id="questionNumber">Question 1</p>
+                <p class="question-text" id="questionText">Loading question...</p>
+
+                <ul class="options-list" id="optionsList">
+                    <!-- Options will be injected here -->
+                </ul>
+            </div>
+
+            <div class="navigation-buttons">
+                <button id="prevBtn" class="btn hidden">Previous</button>
+                <button id="nextBtn" class="btn">Next</button>
+                <button id="submitBtn" class="btn hidden">Submit</button>
+            </div>
+
+            <p class="status-text" id="statusText"></p>
+        </div>
+    </div>
+
+    <script>
+        // Internal state
+        let questions = [];
+        let currentIndex = 0;
+        const selectedAnswers = {}; // key: question index, value: selected option index (0-3)
+        let mcqTimerInterval = null;
+        let mcqTimeRemaining = 15 * 60; // 15 minutes in seconds
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMcqQuestionsFromApi();
+            startMcqTimer();
+        });
+
+        function startMcqTimer() {
+            const display = document.getElementById('timerDisplay');
+            mcqTimerInterval = setInterval(() => {
+                const minutes = Math.floor(mcqTimeRemaining / 60);
+                const seconds = mcqTimeRemaining % 60;
+                display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (mcqTimeRemaining <= 0) {
+                    clearInterval(mcqTimerInterval);
+                    display.textContent = '00:00';
+                    autoSubmitMcq();
+                }
+                mcqTimeRemaining--;
+            }, 1000);
+        }
+
+        // Demo loader that mimics an API response
+        function loadMcqQuestionsDemo() {
+            const demoResponse = {
+                Questions: [
+                    {
+                        question: "What does HTML stand for?",
+                        option1: "Hyper Trainer Marking Language",
+                        option2: "Hyper Text Markup Language",
+                        option3: "Hyper Text Marketing Language",
+                        option4: "Hyper Transfer Markup Language",
+                        answer: 2
+                    },
+                    {
+                        question: "Which tag is used to include JavaScript in HTML?",
+                        option1: "<javascript>",
+                        option2: "<script>",
+                        option3: "<js>",
+                        option4: "<code>",
+                        answer: 2
+                    },
+                    {
+                        question: "Which CSS property controls the text size?",
+                        option1: "font-style",
+                        option2: "text-size",
+                        option3: "font-size",
+                        option4: "text-style",
+                        answer: 3
+                    },
+                    {
+                        question: "Which HTTP method is typically used to retrieve data?",
+                        option1: "GET",
+                        option2: "POST",
+                        option3: "PUT",
+                        option4: "DELETE",
+                        answer: 1
+                    },
+                    {
+                        question: "Which of these is a JavaScript framework?",
+                        option1: "Django",
+                        option2: "Laravel",
+                        option3: "React",
+                        option4: "Flask",
+                        answer: 3
+                    }
+                ]
+            };
+
+            questions = demoResponse.Questions || [];
+            if (!questions.length) {
+                document.getElementById('questionText').textContent = "No questions available.";
+                document.getElementById('nextBtn').disabled = true;
+                return;
+            }
+            renderCurrentQuestion();
+        }
+
+        async function loadMcqQuestionsFromApi() {
+            try {
+                const response = await fetch('/api/mcq/questions');
+                const data = await response.json().catch(() => ({}));
+                if (response.status === 401 || !data.success) {
+                    window.location.href = '/mcq-login';
+                    return;
+                }
+                questions = data.Questions || [];
+                if (!questions.length) {
+                    document.getElementById('questionText').textContent = "No questions available.";
+                    document.getElementById('nextBtn').disabled = true;
+                    return;
+                }
+                renderCurrentQuestion();
+            } catch (error) {
+                console.error('Error while fetching MCQ questions:', error);
+                window.location.href = '/mcq-login';
+            }
+        }
+
+        function renderCurrentQuestion() {
+            const questionObj = questions[currentIndex];
+            const questionNumberEl = document.getElementById('questionNumber');
+            const questionTextEl = document.getElementById('questionText');
+            const optionsListEl = document.getElementById('optionsList');
+            const statusTextEl = document.getElementById('statusText');
+
+            questionNumberEl.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+            questionTextEl.textContent = questionObj.question || "Question text not available";
+
+            const options = [
+                questionObj.option1,
+                questionObj.option2,
+                questionObj.option3,
+                questionObj.option4
+            ];
+
+            optionsListEl.innerHTML = '';
+            options.forEach((opt, idx) => {
+                const li = document.createElement('li');
+                const inputId = `q${currentIndex}_opt${idx}`;
+                const isChecked = selectedAnswers[currentIndex] === idx;
+
+                li.innerHTML = `
+                    <input 
+                        type="radio" 
+                        id="${inputId}" 
+                        name="question-${currentIndex}" 
+                        value="${idx}" 
+                        ${isChecked ? 'checked' : ''}
+                    >
+                    <label for="${inputId}">${opt}</label>
+                `;
+
+                optionsListEl.appendChild(li);
+            });
+
+            // Attach change listeners to store selected answer
+            optionsListEl.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    selectedAnswers[currentIndex] = parseInt(e.target.value, 10);
+                    updateStatusText();
+                });
+            });
+
+            updateButtons();
+            updateStatusText();
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Previous button
+            if (currentIndex === 0) {
+                prevBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+            }
+
+            // Next / Submit buttons
+            if (currentIndex === questions.length - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        function updateStatusText() {
+            const statusTextEl = document.getElementById('statusText');
+            const answeredCount = Object.keys(selectedAnswers).length;
+            statusTextEl.textContent = `Answered ${answeredCount} out of ${questions.length} questions.`;
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCurrentQuestion();
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderCurrentQuestion();
+            }
+        });
+
+        async function submitMcq(isAuto = false) {
+            if (mcqTimerInterval) {
+                clearInterval(mcqTimerInterval);
+                mcqTimerInterval = null;
+            }
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            const payload = {};
+            for (const [k, v] of Object.entries(selectedAnswers)) {
+                payload[String(k)] = v;
+            }
+
+            try {
+                const res = await fetch('/api/mcq-submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answers: payload })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.success) {
+                    alert(isAuto ? 'Time is over. Your answers have been auto-submitted.' : 'Submitted successfully.\nScore: ' + (data.score != null ? data.score.toFixed(1) + '%' : '') + (data.correct != null ? ' (' + data.correct + '/' + data.total + ')' : ''));
+                    window.location.href = '/mcq-login';
+                    return;
+                }
+                alert(data.message || 'Submit failed. Please try again.');
+            } catch (err) {
+                alert('Network error. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            }
+        }
+
+        function autoSubmitMcq() {
+            submitMcq(true);
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            submitMcq(false);
+        });
+    </script>
+</body>
+</html>
+

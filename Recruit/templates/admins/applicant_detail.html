@@ -1,0 +1,27 @@
+{% extends 'admins/adminbase.html' %}
+
+{% block title %}Applicant Detail{% endblock %}
+
+{% block content %}
+<div class="job-listing-wrapper">
+    <h1>Applicant: {{ application.applicant_name }}</h1>
+    <p><strong>Email:</strong> {{ application.applicant_email }}</p>
+    <p><strong>Experience:</strong> {{ application.applicant_experience }} years</p>
+    <p><strong>Education:</strong> {{ application.education }}</p>
+    <p><strong>Status:</strong> {{ application.status }}</p>
+
+    <h3>Scores</h3>
+    <ul>
+        <li>Resume score: {{ application.resume_score or '-' }}</li>
+        <li>LeetCode score: {{ application.leetcode_score or '-' }}</li>
+        <li>GitHub score: {{ application.github_score or '-' }}</li>
+        <li>Eligibility score: {{ application.eligibility_score or '-' }}</li>
+        <li>MCQ score: {{ application.mcq_score or '-' }}</li>
+        <li>Coding score: {{ application.coding_score or '-' }}</li>
+        <li>Interview score: {{ application.interview_score or '-' }}</li>
+    </ul>
+
+    <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+</div>
+{% endblock %}
+

@@ -1,0 +1,211 @@
+{% extends 'admins/adminbase.html' %}
+
+{% block title %}DevOrks - Job Form{% endblock %}
+
+{% block head_extra %}
+  <style>
+    /* ... (Your existing CSS remains here) ... */
+    .form-card {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px;
+      background: var(--card-bg, #fff);
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-card h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      color: var(--accent-color);
+    }
+    .form-card label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: var(--text-color, #333);
+    }
+    .form-card input,
+    .form-card textarea,
+    .form-card select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color, #ddd);
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .form-card textarea {
+      resize: vertical;
+    }
+    .btn {
+      background-color: var(--primary-color, #007bff);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    .btn:hover {
+      background-color: var(--primary-color-hover, #0056b3);
+    }
+    .btn-primary {
+      background-color: var(--accent-color, #28a745);
+      width: 100%;
+      margin-top: 20px;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-color-hover, #218838);
+    }
+    .assessment-builder-fieldset {
+      border: 2px solid var(--border-color, #ddd);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .assessment-builder-fieldset legend {
+      font-weight: bold;
+      color: var(--accent-color, #333);
+      padding: 0 10px;
+    }
+    .assessment-question-actions {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .questions-builder-container {
+      min-height: 50px;
+    }
+    .question-card {
+      border: 1px solid var(--border-color, #ddd);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: var(--card-bg-secondary, #f8f9fa);
+      position: relative;
+    }
+    .question-card h3 {
+      margin-top: 0;
+      color: var(--accent-color, #333);
+    }
+    .delete-question-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .delete-question-btn:hover {
+      background: #c82333;
+    }
+    .mcq-options-container {
+      margin: 15px 0;
+    }
+    .mcq-options-container input {
+      margin-bottom: 10px;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="form-card">
+    <h2 id="formTitle">Post a New Job</h2>
+    <form id="jobForm">
+      <label for="jobDescription">Job Description:</label>
+      <textarea id="jobDescription" rows="6" required></textarea>
+
+      <label for="qualifications">Qualifications:</label>
+      <textarea id="qualifications" rows="4" required></textarea>
+
+      <label for="responsibilities">Role:</label>
+      <textarea id="responsibilities" rows="4" required></textarea>
+
+      
+
+      <label for="requiredExperience">Required Experience:</label>
+      <input type="text" id="requiredExperience" placeholder="e.g., 2+ years, 5-7 years" required />
+
+      <label for="nop">Number Of Positions :</label>
+      <input type="number" id="nop" placeholder="e.g. 1,2,3,4" required min="1" />
+
+      <!-- NEW FIELD: Deadline Date -->
+      <label for="deadline">Deadline : <span class="required">*</span></label>
+      <input type="datetime-local" id="deadline" name="deadline" required>
+
+      <button type="submit" class="btn btn-primary">Post Job</button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const deadlineInput = document.getElementById('deadline');
+
+      const now = new Date();
+      const tomorrow = new Date(now); 
+      tomorrow.setDate(now.getDate() + 1);
+      const nowIso = new Date(tomorrow.getTime() - (tomorrow.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+      deadlineInput.setAttribute('min', nowIso);
+      const company_name = localStorage.getItem('company_name'); // Assuming this is where the job title comes from, based on your original formData.append('jobTitle', company_name);
+
+      
+
+      document.getElementById('jobForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+        const formData = new FormData();
+        formData.append('jobTitle', company_name); // Assuming company_name is intended as jobTitle
+        formData.append('jobDescription', document.getElementById('jobDescription').value.trim());
+        formData.append('qualifications', document.getElementById('qualifications').value.trim());
+        formData.append('responsibilities', document.getElementById('responsibilities').value.trim());
+        formData.append('requiredExperience', document.getElementById('requiredExperience').value.trim());
+        formData.append('number_of_positions', document.getElementById('nop').value);
+        formData.append('deadline', document.getElementById('deadline').value); // Send the deadline
+        try {
+          const response = await fetch('/jobs', {
+            method: 'POST',
+            body: formData
+          });
+          console.log("sent")
+          const result = await response.json();
+          console.log("result")
+
+          if (response.ok) {
+            // Check if showGlobalMessage function exists
+            if (typeof showGlobalMessage === 'function') {
+              showGlobalMessage(result.message, 'success', '/admin/job');
+            } else {
+              alert('Job posted successfully!');
+              window.location.href = '/admin/job';
+            }
+            
+           
+          } else {
+            if (typeof showGlobalMessage === 'function') {
+              showGlobalMessage(result.message || 'Failed to post job', 'error');
+            } else {
+              alert(result.message || 'Failed to post job. Please try again.');
+            }
+          }
+        } catch (error) {
+          console.error('Error submitting job form:', error);
+          if (typeof showGlobalMessage === 'function') {
+            showGlobalMessage('Failed to submit job. Please try again.', 'error');
+          } else {
+            alert('Failed to submit job. Please try again.');
+          }
+        }
+      });
+
+
+    });
+  </script>
+{% endblock %}

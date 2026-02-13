@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font import for Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1120;
+            color: #e5e7eb;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .card {
+            background-color: #020617;
+            border-radius: 0.75rem;
+            border: 1px solid #111827;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.8);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+        }
+
+        .card-header {
+            background: radial-gradient(circle at top left, #1d4ed8, #0b1120);
+            color: #f9fafb;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 1.1rem 1.25rem 1.3rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.22rem 0.7rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+
+        .status-application {
+            background-color: #4b5563;
+        }
+
+        .status-offer-pending {
+            background-color: #f59e0b;
+        }
+
+        .status-offer-sent {
+            background-color: #3b82f6;
+        }
+
+        .status-offer-accepted {
+            background-color: #10b981;
+        }
+
+        .status-offer-declined {
+            background-color: #ef4444;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.6rem 1.2rem;
+            margin-top: 0.8rem;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #9ca3af;
+        }
+
+        .metric-value {
+            font-size: 0.98rem;
+            font-weight: 500;
+            color: #e5e7eb;
+        }
+
+        .metric-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            background-color: rgba(34, 197, 94, 0.12);
+            color: #bbf7d0;
+        }
+
+        .offer-actions {
+            margin-top: 0.9rem;
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .btn-ghost {
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background-color: transparent;
+            color: #e5e7eb;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .btn-ghost:hover {
+            background-color: rgba(148, 163, 184, 0.12);
+            border-color: rgba(148, 163, 184, 0.9);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(to right, #22c55e, #16a34a);
+            color: #f9fafb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.15s ease;
+            box-shadow: 0 8px 18px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(34, 197, 94, 0.5);
+        }
+
+        .btn-danger {
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(to right, #ef4444, #b91c1c);
+            color: #f9fafb;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.15s ease;
+            box-shadow: 0 8px 18px rgba(248, 113, 113, 0.35);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(248, 113, 113, 0.45);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+    <div id="loading" class="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50 hidden">
+        <div class="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-blue-500"></div>
+        <p class="ml-4 text-lg text-gray-700">Loading applications...</p>
+    </div>
+
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 shadow-lg">
+        <div class="container flex justify-between items-center">
+            <h1 class="text-3xl font-bold rounded-md px-3 py-1 bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm">
+                My Job Applications
+            </h1>
+            <div class="flex items-center space-x-4">
+                <span id="userNameDisplay" class="text-xl font-semibold">Hello, Guest!</span>
+                <button id="logoutButton"
+                    class="px-5 py-2 bg-white text-indigo-700 rounded-lg shadow-md hover:bg-indigo-100 transition duration-300 ease-in-out font-medium">
+                    Go Back
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container py-8">
+        <div id="applicationsContainer">
+            <!-- Applications will be loaded here by JavaScript -->
+        </div>
+
+        <div id="noApplicationsMessage"
+            class="hidden bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md shadow-md mt-8"
+            role="alert">
+            <p class="font-bold">No Applications Found!</p>
+            <p>It looks like you haven't applied for any jobs yet. Start exploring exciting opportunities!</p>
+        </div>
+
+        <div id="errorMessage"
+            class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-md mt-8" role="alert">
+            <p class="font-bold">Error Loading Applications</p>
+            <p id="errorMessageText"></p>
+            <p class="mt-2">Please try logging in again or refresh the page. If the problem persists, contact support.
+            </p>
+            <button id="loginPromptButton"
+                class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition duration-300 ease-in-out font-medium">
+                Go to Login
+            </button>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white p-6 text-center shadow-inner mt-auto">
+        <div class="container">
+            <p>&copy; 2025 Job Portal. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        async function handleOfferDecision(applicationId, decision) {
+            try {
+                const response = await fetch('/user/offer/decision', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ application_id: applicationId, decision })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(data.message || 'Failed to update offer decision');
+                    return;
+                }
+                alert(data.message || 'Decision recorded');
+                fetchApplications();
+            } catch (e) {
+                console.error('Error updating offer decision:', e);
+                alert('Network error while updating decision.');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const applicationsContainer = document.getElementById('applicationsContainer');
+            const noApplicationsMessage = document.getElementById('noApplicationsMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorMessageText = document.getElementById('errorMessageText');
+            const loadingIndicator = document.getElementById('loading');
+            const logoutButton = document.getElementById('logoutButton');
+            const loginPromptButton = document.getElementById('loginPromptButton');
+
+            // --- Function to show/hide loading indicator ---
+            function showLoading() { loadingIndicator.classList.remove('hidden'); }
+            function hideLoading() { loadingIndicator.classList.add('hidden'); }
+
+            // --- Function to fetch and display applications ---
+            async function fetchApplications() {
+                showLoading();
+                applicationsContainer.innerHTML = ''; // Clear previous content
+                noApplicationsMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+
+                try {
+                    const response = await fetch('/user/applications');
+                    const data = await response.json();
+                    console.log(data)
+                    if (response.ok) {
+                        const userName = data.user_name || localStorage.getItem('candidate_name') || 'Guest';
+                        userNameDisplay.textContent = `Hello, ${userName}!`;
+                        localStorage.setItem('candidate_name', userName); // Store name in local storage
+
+                        if (data.applications && data.applications.length > 0) {
+                            data.applications.forEach(app => {
+                                const card = document.createElement('div');
+                                card.className = 'card';
+
+                                const offerStatus = (app.offer_status || 'pending').toLowerCase();
+                                let offerClass = 'status-offer-pending';
+                                if (offerStatus === 'offer_sent') offerClass = 'status-offer-sent';
+                                else if (offerStatus === 'accepted') offerClass = 'status-offer-accepted';
+                                else if (offerStatus === 'declined') offerClass = 'status-offer-declined';
+
+                                const hasScores =
+                                    app.resume_score != null ||
+                                    app.leetcode_score != null ||
+                                    app.github_score != null ||
+                                    app.eligibility_score != null ||
+                                    app.mcq_score != null ||
+                                    app.coding_score != null ||
+                                    app.interview_score != null;
+
+                                card.innerHTML = `
+                                    <div class="card-header">
+                                        <div>
+                                            <h2 class="text-lg font-semibold">${app.job_title}</h2>
+                                            <p class="text-xs text-gray-200 mt-1">
+                                                Applied on ${app.applied_at ? new Date(app.applied_at).toLocaleDateString() : 'N/A'}
+                                            </p>
+                                        </div>
+                                        <div class="flex flex-col items-end space-y-1">
+                                            <span class="status-badge status-application">
+                                                ${app.status}
+                                            </span>
+                                            <span class="status-badge ${offerClass}">
+                                                Offer: ${offerStatus.replace('_', ' ')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="text-sm text-gray-300">
+                                            <span class="font-medium">Applicant:</span> ${app.applicant_name} (${app.applicant_email})
+                                        </p>
+
+                                        ${hasScores ? `
+                                            <div class="detail-grid mt-3">
+                                                <div>
+                                                    <div class="metric-label">Resume score</div>
+                                                    <div class="metric-value">
+                                                        ${app.resume_score != null ? `<span class="metric-pill">${app.resume_score}</span>` : '-'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="metric-label">LeetCode score</div>
+                                                    <div class="metric-value">
+                                                        ${app.leetcode_score != null ? app.leetcode_score : '-'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="metric-label">GitHub score</div>
+                                                    <div class="metric-value">
+                                                        ${app.github_score != null ? app.github_score : '-'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="metric-label">Eligibility score</div>
+                                                    <div class="metric-value">
+                                                        ${app.eligibility_score != null ? app.eligibility_score : '-'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="metric-label">MCQ score</div>
+                                                    <div class="metric-value">
+                                                        ${app.mcq_score != null ? app.mcq_score : '-'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="metric-label">Coding score</div>
+                                                    <div class="metric-value">
+                                                        ${app.coding_score != null ? app.coding_score : '-'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div class="metric-label">Interview score</div>
+                                                    <div class="metric-value">
+                                                        ${app.interview_score != null ? app.interview_score : '-'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ` : `
+                                            <p class="text-xs text-gray-400 mt-2 italic">
+                                                No scores available yet for this application.
+                                            </p>
+                                        `}
+
+                                        ${offerStatus === 'offer_sent' ? `
+                                            <div class="offer-actions">
+                                                <button class="btn-primary"
+                                                    onclick="handleOfferDecision('${app.id}', 'accept')">
+                                                    Accept Offer
+                                                </button>
+                                                <button class="btn-danger"
+                                                    onclick="handleOfferDecision('${app.id}', 'reject')">
+                                                    Reject Offer
+                                                </button>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                                applicationsContainer.appendChild(card);
+                            });
+                        } else {
+                            noApplicationsMessage.classList.remove('hidden');
+                        }
+                    } else {
+                        // Handle server errors or unauthorized access
+                        errorMessage.classList.remove('hidden');
+                        errorMessageText.textContent = `Server error: ${data.message || response.statusText}`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching applications:', error);
+                    errorMessage.classList.remove('hidden');
+                    errorMessageText.textContent = `Network error: ${error.message}.`;
+                } finally {
+                    hideLoading();
+                }
+            }
+
+            // --- Event Listeners ---
+
+            
+
+            // Handle logout button click
+            logoutButton.addEventListener('click', async () => {
+                showLoading();
+                window.location.href = "http://localhost:5000/user/"
+            });
+
+            // Handle 'Go to Login' button click on error message
+            loginPromptButton.addEventListener('click', () => {
+                errorMessage.classList.add('hidden');
+                showLoginModal();
+            });
+
+            // Initial load: Try to fetch applications
+            fetchApplications();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,185 @@
+{% extends "interviewerbase.html" %}
+
+{% block title %}Add New Interview Slot - DevOrks{% endblock %}
+
+{% block head_extra %}
+<style>
+    /* Re-use or adapt styles from your schedule_interview.html for form-card, form-section, form-row, form-group, etc. */
+    .slot-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .form-card h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        color: var(--accent-color);
+    }
+    /* Add specific styles for the slot form if needed */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="slot-form-container">
+    <div class="form-card">
+        <h2>Add New Interview Slot</h2>
+        <form id="addSlotForm" method="POST" action="/slots/add">
+            <div class="form-section">
+                <h3>Slot Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="company_name">Company Name <span class="required">*</span></label>
+                        <input type="text" id="company_name" name="company_name" required >
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Job Role / Title <span class="required">*</span></label>
+                        <input type="text" id="role" name="role"  placeholder="e.g., Software Engineer" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interview_time">Interview Date & Time <span class="required">*</span></label>
+                        <input type="datetime-local" id="interview_time" name="interview_time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mode">Interview Mode <span class="required">*</span></label>
+                        <select id="mode" name="mode" required>
+                            <option value="">-- Select Mode --</option>
+                            <option value="online">Online</option>
+                            <option value="offline">In-Person</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Interviewer Information</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="interviewer_name">Interviewer Name <span class="required">*</span></label>
+                        <input type="text" id="interviewer_name" name="interviewer_name" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interviewer_email">Interviewer Email <span class="required">*</span></label>
+                        <input type="email" id="interviewer_email" name="interviewer_email" placeholder="email@company.com" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Location Details</h3>
+                <div id="onlineSection" class="mode-dependent">
+                    <div class="form-group">
+                        <label for="meeting_link">Meeting Link</label>
+                        <input type="url" id="meeting_link" name="meeting_link" placeholder="https://zoom.us/j/meeting-id">
+                    </div>
+                </div>
+                <div id="offlineSection" class="mode-dependent">
+                    <div class="form-group">
+                        <label for="address">Interview Address</label>
+                        <textarea id="address" name="address" rows="3" placeholder="Full interview address"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-button">Add Slot</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modeSelect = document.getElementById('mode');
+        const onlineSection = document.getElementById('onlineSection');
+        const offlineSection = document.getElementById('offlineSection');
+        const meetingLinkInput = document.getElementById('meeting_link');
+        const addressInput = document.getElementById('address');
+        const interviewTimeInput = document.getElementById('interview_time');
+
+        // Set minimum date for datetime-local to now
+
+        const companyNameInput = document.getElementById('company_name');
+        const roleInput = document.getElementById('role');
+        const interviewerEmail = document.getElementById('interviewer_email');
+
+        if (localStorage.getItem('name')) {
+            companyNameInput.value = localStorage.getItem('name');
+        }
+        if (localStorage.getItem('response')) {
+            roleInput.value = localStorage.getItem('response');
+        }
+        if ( localStorage.getItem('email')) {
+            interviewerEmail.value = localStorage.getItem('email');
+        }
+        const now = new Date();
+        // Format to YYYY-MM-DDTHH:MM for datetime-local input
+        const nowIso = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        interviewTimeInput.setAttribute('min', nowIso);
+
+
+        modeSelect.addEventListener('change', function() {
+            const selectedMode = this.value;
+            
+            onlineSection.classList.remove('show');
+            offlineSection.classList.remove('show');
+            
+            // Clear required attributes and values
+            meetingLinkInput.removeAttribute('required');
+            addressInput.removeAttribute('required');
+            meetingLinkInput.value = '';
+            addressInput.value = '';
+
+            // Hide physically
+            onlineSection.style.display = 'none';
+            offlineSection.style.display = 'none';
+
+            if (selectedMode === 'online') {
+                onlineSection.style.display = 'block';
+                setTimeout(() => onlineSection.classList.add('show'), 10);
+                meetingLinkInput.setAttribute('required', 'required');
+            } else if (selectedMode === 'offline') {
+                offlineSection.style.display = 'block';
+                setTimeout(() => offlineSection.classList.add('show'), 10);
+                addressInput.setAttribute('required', 'required');
+            }
+        });
+
+        // Trigger change on load if a default value is set (e.g., from an edit operation)
+        modeSelect.dispatchEvent(new Event('change'));
+
+        // Handle form submission with fetch API for messages
+        document.getElementById('addSlotForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            console.log("hello")
+            const data = Object.fromEntries(formData.entries());
+            console.log(data)
+
+            try {
+                const response = await fetch('/slots/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showGlobalMessage(result.message, 'success', '/slots/add'); // Redirect to view slots
+                    this.reset(); // Clear form
+                    modeSelect.dispatchEvent(new Event('change')); // Reset mode display
+                } else {
+                    showGlobalMessage(result.message || 'Error adding slot', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding slot:', error);
+                showGlobalMessage('Failed to add slot. Please try again.', 'error');
+            }
+        });
+    });
+</script>
+{% endblock %}

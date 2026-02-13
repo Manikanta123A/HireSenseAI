@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coding Assessment</title>
+    <style>
+        :root {
+            --surface-color-dark: #2a2a2a;
+            --shadow-color-dark: rgba(0,0,0,0.3);
+            --border-color-dark: #444;
+            --accent-color: #007bff;
+            --text-color-faded: #aaa;
+            --text-color-light: #e0e0e0;
+            --input-bg-dark: #333;
+            --button-bg-dark: #007bff;
+            --button-hover-dark: #0056b3;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: var(--text-color-light);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .coding-page-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: var(--surface-color-dark);
+            border-radius: 10px;
+            box-shadow: 0 3px 15px var(--shadow-color-dark);
+            border: 1px solid var(--border-color-dark);
+            display: flex;
+            gap: 20px;
+        }
+
+        .coding-header {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .coding-header h1 {
+            color: var(--accent-color);
+            font-size: 2.2em;
+            margin: 0 0 5px 0;
+        }
+
+        .coding-header p {
+            color: var(--text-color-faded);
+            margin: 0;
+            font-size: 0.95em;
+        }
+
+        .timer-text {
+            margin-top: 5px;
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .sidebar {
+            width: 220px;
+            background-color: #242424;
+            border-radius: 8px;
+            border: 1px solid var(--border-color-dark);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-color-light);
+        }
+
+        .question-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 15px 0;
+        }
+
+        .question-list li {
+            margin-bottom: 8px;
+        }
+
+        .question-tab {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color-dark);
+            background-color: #333;
+            color: var(--text-color-light);
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .question-tab.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .question-tab.answered:not(.active) {
+            border-color: #28a745;
+        }
+
+        .sidebar-footer {
+            margin-top: 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--button-bg-dark);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--button-hover-dark);
+        }
+
+        .sidebar-status {
+            margin-top: 8px;
+            font-size: 0.85em;
+            color: var(--text-color-faded);
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .question-card {
+            background-color: #3a3a3a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color-dark);
+            box-shadow: 0 2px 8px var(--shadow-color-dark);
+            min-height: 150px;
+        }
+
+        .question-number {
+            font-weight: bold;
+            color: var(--text-color-faded);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            color: var(--text-color-light);
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+
+        .code-editor-label {
+            font-size: 0.9em;
+            color: var(--text-color-faded);
+            margin-bottom: 5px;
+        }
+
+        .code-editor {
+            width: 100%;
+            min-height: 260px;
+            max-height: 500px;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color-dark);
+            background-color: #202020;
+            color: #f5f5f5;
+            font-family: "Fira Code", "Cascadia Code", Consolas, monospace;
+            font-size: 0.95em;
+            resize: vertical;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+
+        .info-text {
+            font-size: 0.85em;
+            color: var(--text-color-faded);
+        }
+
+        @media (max-width: 900px) {
+            .coding-page-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .sidebar-footer {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="coding-header">
+        <h1>Coding Test</h1>
+        <p>Write your solutions in the editor. Use the sidebar to switch questions.</p>
+        <p class="timer-text">Time Remaining: <span id="codingTimerDisplay">45:00</span></p>
+    </div>
+
+    <div class="coding-page-container">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-title">Questions</div>
+                <ul class="question-list" id="questionList">
+                    <!-- Tabs injected by JS -->
+                </ul>
+            </div>
+            <div class="sidebar-footer">
+                <button id="submitCodingBtn" class="submit-btn">Submit Answers</button>
+                <div id="sidebarStatus" class="sidebar-status"></div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="question-card">
+                <p class="question-number" id="questionNumber">Question 1</p>
+                <p class="question-text" id="questionText">Loading coding questions...</p>
+                <div class="code-editor-label">Your solution (you can use any language):</div>
+                <textarea id="codeEditor" class="code-editor" spellcheck="false" placeholder="// Write your code here"></textarea>
+            </div>
+            <p class="info-text">
+                Your code is kept locally in this page while you switch between questions. When you click "Submit Answers",
+                your current solutions will be collected. (Demo mode: just logs them for now.)
+            </p>
+        </main>
+    </div>
+
+    <script>
+        // Internal state
+        let questions = [];          // array of question texts
+        let currentIndex = 0;        // 0-based index of active question
+        const answers = {};          // { index: codeText }
+        let codingTimerInterval = null;
+        let codingTimeRemaining = 45 * 60; // 45 minutes in seconds
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // For now, use demo data but keep API-call structure ready
+            loadCodingQuestionsDemo();
+            // When your API is ready, replace the above line with:
+            // loadCodingQuestionsFromApi();
+
+            document.getElementById('codeEditor').addEventListener('input', handleEditorInput);
+            document.getElementById('submitCodingBtn').addEventListener('click', () => handleSubmit(false));
+
+            startCodingTimer();
+        });
+
+        function startCodingTimer() {
+            const display = document.getElementById('codingTimerDisplay');
+            codingTimerInterval = setInterval(() => {
+                const minutes = Math.floor(codingTimeRemaining / 60);
+                const seconds = codingTimeRemaining % 60;
+                display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (codingTimeRemaining <= 0) {
+                    clearInterval(codingTimerInterval);
+                    display.textContent = '00:00';
+                    handleSubmit(true);
+                }
+                codingTimeRemaining--;
+            }, 1000);
+        }
+
+        // Demo loader following the described API shape:
+        // { Questions: [ { question1: "...", question2: "..." } ] }
+        function loadCodingQuestionsDemo() {
+            const demoResponse = {
+                Questions: [
+                    {
+                        question1: "1) Write a function in Python that returns the factorial of a given number n.\n\nRequirements:\n- Use an iterative approach (for loop)\n- Handle the case when n is 0 or 1.",
+                        question2: "2) Write a JavaScript function that takes an array of numbers and returns a new array containing only the even numbers.\n\nExample:\ninput: [1,2,3,4,5,6]\noutput: [2,4,6]"
+                    }
+                ]
+            };
+
+            hydrateQuestionsFromApiShape(demoResponse);
+        }
+
+        // Example real API call – adjust URL as needed when your backend is ready
+        async function loadCodingQuestionsFromApi() {
+            try {
+                const response = await fetch('http://localhost:5000/get_coding_questions');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch coding questions');
+                }
+                const data = await response.json();
+                hydrateQuestionsFromApiShape(data);
+            } catch (err) {
+                console.error('Error loading coding questions, falling back to demo.', err);
+                loadCodingQuestionsDemo();
+            }
+        }
+
+        // Turns {Questions:[{question1,question2}]} into ["...", "..."]
+        function hydrateQuestionsFromApiShape(data) {
+            if (!data || !Array.isArray(data.Questions) || data.Questions.length === 0) {
+                questions = [];
+            } else {
+                const first = data.Questions[0] || {};
+                // preserve the order question1, question2
+                questions = [];
+                if (first.question1) questions.push(first.question1);
+                if (first.question2) questions.push(first.question2);
+            }
+
+            if (!questions.length) {
+                document.getElementById('questionText').textContent = 'No coding questions available.';
+                document.getElementById('codeEditor').disabled = true;
+                document.getElementById('submitCodingBtn').disabled = true;
+                return;
+            }
+
+            buildSidebarTabs();
+            renderCurrentQuestion();
+        }
+
+        function buildSidebarTabs() {
+            const listEl = document.getElementById('questionList');
+            listEl.innerHTML = '';
+
+            questions.forEach((_, idx) => {
+                const li = document.createElement('li');
+                const btn = document.createElement('button');
+                btn.className = 'question-tab';
+                btn.textContent = `Question ${idx + 1}`;
+                btn.dataset.index = idx;
+                btn.addEventListener('click', () => switchQuestion(idx));
+                li.appendChild(btn);
+                listEl.appendChild(li);
+            });
+
+            updateSidebarUI();
+        }
+
+        function switchQuestion(newIndex) {
+            if (newIndex === currentIndex) return;
+
+            // Save current editor content before switching
+            const editor = document.getElementById('codeEditor');
+            answers[currentIndex] = editor.value;
+
+            currentIndex = newIndex;
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            const questionNumberEl = document.getElementById('questionNumber');
+            const questionTextEl = document.getElementById('questionText');
+            const editor = document.getElementById('codeEditor');
+
+            questionNumberEl.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+            questionTextEl.textContent = questions[currentIndex] || 'Question text not available.';
+
+            editor.value = answers[currentIndex] || '';
+
+            updateSidebarUI();
+            updateSidebarStatus();
+        }
+
+        function handleEditorInput(e) {
+            answers[currentIndex] = e.target.value;
+            updateSidebarUI();
+            updateSidebarStatus();
+        }
+
+        function updateSidebarUI() {
+            const tabs = document.querySelectorAll('.question-tab');
+            tabs.forEach((tab) => {
+                const idx = parseInt(tab.dataset.index, 10);
+                tab.classList.toggle('active', idx === currentIndex);
+                if (answers[idx] && answers[idx].trim().length > 0) {
+                    tab.classList.add('answered');
+                } else {
+                    tab.classList.remove('answered');
+                }
+            });
+        }
+
+        function updateSidebarStatus() {
+            const statusEl = document.getElementById('sidebarStatus');
+            const answeredCount = Object.values(answers).filter(v => v && v.trim().length > 0).length;
+            statusEl.textContent = `Answered ${answeredCount} of ${questions.length} questions.`;
+        }
+
+        function handleSubmit(isAuto = false) {
+            // Save current editor content
+            const editor = document.getElementById('codeEditor');
+            answers[currentIndex] = editor.value;
+
+            // Build payload
+            const payload = questions.map((q, idx) => ({
+                question_index: idx,
+                question_text: q,
+                code_answer: answers[idx] || ''
+            }));
+
+            console.log('Coding answers payload (demo):', payload);
+            if (isAuto) {
+                alert('Time is over. Your coding answers have been auto-submitted (demo mode). Check console for payload.');
+            } else {
+                alert('Your coding answers have been captured (demo mode). Check console for payload.');
+            }
+
+            // When you wire up the backend, you can POST this:
+            // fetch('http://localhost:5000/submit_coding_answers', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ answers: payload })
+            // });
+        }
+    </script>
+</body>
+</html>
+
