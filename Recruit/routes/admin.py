@@ -66,7 +66,8 @@ def admin_applications():
                 'github_score': app_obj.github_score,
                 'resume_score': app_obj.resume_score,
                 'resume_skills': app_obj.resume_skills,
-                'status': app_obj.status
+                'status': app_obj.status,
+                'Comment': app_obj.Comment
             })
 
         print(filtered_applications_list)

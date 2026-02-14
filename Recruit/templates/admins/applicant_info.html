@@ -268,6 +268,7 @@
                         <div><strong>Coding Score:</strong> ${row.coding_score ?? '-'}</div>
                         <div><strong>Interview Score:</strong> ${row.interview_score ?? '-'}</div>
                         <div><strong>Eligibility Score:</strong> ${row.eligibility_score ?? '-'}</div>
+                        <div><strong>Comment</strong>: ${row.Comment ?? '-'}</div>
                     </div>
                 </td>
             </tr>
@@ -347,7 +348,7 @@
                     this.textContent = 'Send to top ' + numberOfPositions;
                     return;
                 }
-
+                window.location.relod();
                 renderRound(4);
                 this.textContent = 'Offers sent';
 

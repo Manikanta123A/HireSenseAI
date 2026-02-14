@@ -239,8 +239,9 @@
                     alert(data.message || 'Failed to update offer decision');
                     return;
                 }
+
                 alert(data.message || 'Decision recorded');
-                fetchApplications();
+                window.location.reload();
             } catch (e) {
                 console.error('Error updating offer decision:', e);
                 alert('Network error while updating decision.');

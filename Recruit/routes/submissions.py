@@ -136,7 +136,9 @@ You are an expert technical recruiter.
 Your job is to evaluate a candidate based on the JOB ROLE.
 
 First, infer what matters most for this role.
-
+INSTRUCTIONS:
+Do not take bias for any candidate. Be strict and realistic like a FAANG recruiter. Consider the seniority and domain of the role while deciding the weight distribution for each component.
+Dont consider college name , gender and location for evaluation. Focus on skills, experience, projects, resume quality, GitHub profile and LeetCode performance.
 Examples:
 - SDE/Backend/Frontend → LeetCode + GitHub matter more
 - Data Scientist/ML → Projects + skills + GitHub matter more
@@ -157,6 +159,10 @@ Score each independently (0–100).
 STEP 3:
 Compute final_overall_score using your weights.
 
+STEP 4:
+If the notice any disrepancy between the resume projects, skills mentioned and the github profile then let me know that in the comment Field Itself 
+It should be very short consists only of the two sentences not more than strictly 
+Include one Positve sentence and other negative sentence about the candidate profile
 --------------------
 
 JOB TITLE:
@@ -192,7 +198,8 @@ Return ONLY valid JSON:
 "github_score": int,
 "leetcode_score": int,
 "final_overall_score": int,
-"skills": ["list skills from resume"]
+"skills": ["list skills from resume"],
+"Comment": "Your comments on the candidate's profile and any discrepancies you notice"
 }}
 
 Be realistic and strict like a FAANG recruiter.
@@ -313,6 +320,7 @@ def submit_application():
         resume_score = float(gemini_output.get('resume_score',0.0))
         skills = gemini_output.get('skills', [])
         skills = ''.join(skills)
+        Comment = gemini_output.get('Comment', '')
 
 
 
@@ -335,14 +343,15 @@ def submit_application():
             github_score=github_score,
             resume_score = resume_score,
             resume_skills = skills,
-            status='MCQ'
+            status='MCQ',
+            Comment=Comment
         )
         db.session.add(new_application)
         try:
             db.session.commit()
             send_email(email,'Next Round', f'''
 Congratulations! You have cleared the initial screening round for the position of {job.title}. 
-Here is the link for the next round of assessment: http://localhost:5000/coding-login''')
+Here is the link for the next round of assessment: http://localhost:5000/mcq-login''')
             return jsonify({
                 "message": "Application submitted successfully! Please proceed to assessment.",
                 "job_id": job_id,

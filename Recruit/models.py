@@ -74,6 +74,7 @@ class Application(db.Model):
     resume_score = db.Column(db.Float)
     offer_status = db.Column(db.String(50), default="pending")
     gender = db.Column(db.String(10))
+    Comment = db.Column(db.Text)
 
 
     job = db.relationship('Job', backref=db.backref('application', lazy=True))

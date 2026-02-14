@@ -106,16 +106,58 @@ def offer_decision():
 
     if decision == "accept":
         app_obj.offer_status = "accepted"
+        app_obj.status = "OFFER ACCEPTED"
+        
+
+
+        accepted_count = (
+        Application.query.filter_by(job_id=app_obj.job_id)
+        .filter(Application.offer_status == "accepted")
+        .count()
+            )
+        
+        if accepted_count >= job.number_of_positions:
+
+            remaining_candidates = (
+                Application.query.filter_by(job_id=app_obj.job_id)
+                .filter(
+                    Application.interview_score.isnot(None),
+                    Application.offer_status != "accepted"
+                )
+                .all()
+            )
+
+            for candidate in remaining_candidates:
+                candidate.offer_status = "rejected"
+                candidate.status = "REJECTED - POSITION FILLED"
+
+                subject = f"Update on your application - {job.title}"
+                body = (
+                    f"Dear {candidate.applicant_name},\n\n"
+                    f"Thank you for participating in all rounds for the role '{job.title}'. "
+                    f"The position has now been filled.\n\n"
+                    f"We truly appreciate your effort and encourage you to apply for future opportunities.\n\n"
+                    f"Best regards,\n"
+                    f"Recruitment Team"
+                )
+
+                try:
+                    send_email(candidate.applicant_email, subject, body)
+                except Exception as e:
+                    print(f"Email failed for {candidate.applicant_email}: {e}")
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             return jsonify({"message": f"Failed to update offer status: {e}"}), 500
 
-        return jsonify({"message": "Offer accepted"}), 200
+        return jsonify({"message": "Offer accepted", "accepted_count": accepted_count}), 200
+    
+        
 
     # decision == "reject"
     app_obj.offer_status = "declined"
+    app_obj.status = "OFFER DECLINED"
 
     def base_score(a):
         components = [

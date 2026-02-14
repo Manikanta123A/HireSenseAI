@@ -59,7 +59,7 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY environment variable is not set.")
-genai.configure(api_key="AIzaSyAcAJFHI_jyahZa7bCC3s04yHm9ujbq2_I")
+genai.configure(api_key="AIzaSyA61uC7wO65C9PP28CbvgVktoiVLIancjw")
 
 # ==================== INTEGRATED EMAIL OFFER SYSTEM ====================
 
@@ -1595,7 +1595,7 @@ def applicant_info():
     if not job_id:
         return render_template('error.html', message="Missing job_id for applicant info"), 400
 
-    job = Job.query.get(job_id)
+    job = db.session.get(Job, job_id)
     if not job:
         return render_template('error.html', message="Job not found"), 404
 
@@ -1628,6 +1628,7 @@ def applicant_info():
             "coding_score": app.coding_score,
             "interview_score": app.interview_score,
             "score": base_score(app),
+            "Comment":app.Comment,
             "offer_status": app.offer_status,
         }
 
@@ -1638,6 +1639,7 @@ def applicant_info():
         and a.leetcode_score is not None
         and a.github_score is not None
         and a.eligibility_score is not None
+        and a.Comment is not None
     ]
     round1 = sorted(round1, key=base_score, reverse=True)
 
